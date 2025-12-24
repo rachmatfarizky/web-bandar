@@ -24,6 +24,7 @@ const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMen
             <a href="#tentang" className="hover:text-emerald-300 transition">Profil Desa</a>
             <a href="#dusun" className="hover:text-emerald-300 transition">Data Dusun</a>
             <a href="#kontak" className="hover:text-emerald-300 transition">Kontak</a>
+            <a href="/admin/login" className="hover:text-yellow-400 transition font-bold">Login Admin</a>
           </div>
 
           {/* Mobile Menu Button */}
@@ -39,6 +40,7 @@ const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMen
             <a href="#tentang" onClick={() => setIsMenuOpen(false)}>Profil Desa</a>
             <a href="#dusun" onClick={() => setIsMenuOpen(false)}>Data Dusun</a>
             <a href="#kontak" onClick={() => setIsMenuOpen(false)}>Kontak</a>
+            <a href="/admin/login" onClick={() => setIsMenuOpen(false)} className="font-bold text-yellow-400">Login Admin</a>
           </div>
         )}
       </nav>
