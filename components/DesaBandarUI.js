@@ -246,7 +246,8 @@ const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMen
             </div>
           </div>
           <div className="pt-8 text-center text-sm text-slate-500">
-            &copy; {new Date().getFullYear()} Pemerintah Desa Bandar. All rights reserved.
+            &copy; {new Date().getFullYear()} Pemerintah Desa Bandar. All rights reserved.<br />
+            <a href="/admin/login" className="text-emerald-600 hover:underline">Login Admin</a>
           </div>
         </div>
       </footer>
