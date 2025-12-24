@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Users, TreePine, ArrowRight, Menu, X, Phone, Mail, Facebook, Instagram, ChevronRight, Search } from 'lucide-react';
+import { MapPin, Users, TreePine, ArrowRight, Menu, X, Phone, Mail, Facebook, Instagram, ChevronRight, Search, User } from 'lucide-react';
 
 
 const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMenuOpen, selectedDusun, setSelectedDusun, searchTerm, setSearchTerm }) => (
@@ -10,7 +10,7 @@ const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMen
           <div className="flex items-center gap-3">
             <div className="bg-white p-1.5 rounded-full">
                {/* Logo Placeholder - Ganti dengan Logo Kab Pacitan */}
-               <TreePine className="text-emerald-700 w-6 h-6" />
+               <img src="/img/logo-kab-pacitan.png" alt="Logo Kabupaten Pacitan" className="w-8 h-8 rounded-full" />
             </div>
             <div className="text-white">
               <h1 className="font-bold text-lg leading-tight">Desa Bandar</h1>
@@ -24,7 +24,7 @@ const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMen
             <a href="#tentang" className="hover:text-emerald-300 transition">Profil Desa</a>
             <a href="#dusun" className="hover:text-emerald-300 transition">Data Dusun</a>
             <a href="#kontak" className="hover:text-emerald-300 transition">Kontak</a>
-            <a href="/admin/login" className="hover:text-yellow-400 transition font-bold">Login Admin</a>
+            <a href="/admin/login" className="hover:text-yellow-400 transition font-bold flex items-center"><User className="w-5 h-5" /></a>
           </div>
 
           {/* Mobile Menu Button */}
@@ -40,7 +40,7 @@ const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMen
             <a href="#tentang" onClick={() => setIsMenuOpen(false)}>Profil Desa</a>
             <a href="#dusun" onClick={() => setIsMenuOpen(false)}>Data Dusun</a>
             <a href="#kontak" onClick={() => setIsMenuOpen(false)}>Kontak</a>
-            <a href="/admin/login" onClick={() => setIsMenuOpen(false)} className="font-bold text-yellow-400">Login Admin</a>
+            <a href="/admin/login" onClick={() => setIsMenuOpen(false)} className="font-bold text-yellow-400 flex items-center"><User className="w-5 h-5" /></a>
           </div>
         )}
       </nav>
@@ -48,9 +48,12 @@ const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMen
       {/* --- HERO SECTION --- */}
       <header id="beranda" className="relative h-[85vh] flex items-center justify-center text-center text-white">
         <div className="absolute inset-0 bg-black/40 z-10"></div>
-        <img 
-          src="https://images.unsplash.com/photo-1520262494112-968cc5806f8e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80" 
-          alt="Pemandangan Desa Bandar" 
+        <video 
+          src="/vid/drone.mp4" 
+          autoPlay 
+          loop 
+          muted 
+          playsInline
           className="absolute inset-0 w-full h-full object-cover z-0"
         />
         <div className="relative z-20 container px-6 mt-16">
@@ -196,19 +199,19 @@ const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMen
             </div>
           </div>
           <div className="lg:w-1/2 grid grid-cols-2 gap-4">
-             <img src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" className="rounded-2xl shadow-lg transform translate-y-8" alt="Pertanian" />
-             <img src="https://images.unsplash.com/photo-1599586120429-48285b6a8a81?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" className="rounded-2xl shadow-lg" alt="Kegiatan Desa" />
+             <img src="/img/DSCF9959.JPG" className="rounded-2xl shadow-lg transform translate-y-8" alt="Pertanian" />
+             <img src="/img/DSCF9955.JPG" className="rounded-2xl shadow-lg" alt="Kegiatan Desa" />
           </div>
         </div>
       </section>
 
       {/* --- FOOTER --- */}
-      <footer id="kontak" className="bg-slate-900 text-slate-300 py-16">
+      <footer id="kontak" className="bg-slate-900 text-slate-300 py-6">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-slate-800 pb-12">
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-4">
-                 <TreePine className="text-emerald-500 w-8 h-8" />
+                 <img src="/img/logo-kab-pacitan.png" alt="Logo Kabupaten Pacitan" className="w-8 h-8 rounded-full" />
                  <h2 className="text-2xl font-bold text-white">Desa Bandar</h2>
               </div>
               <p className="mb-6 max-w-sm">
@@ -225,7 +228,7 @@ const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMen
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
                   <MapPin className="text-emerald-500 w-5 h-5 mt-1 shrink-0" />
-                  <span>Jl. Raya Bandar No. 1, Desa Bandar, Kec. Bandar, Kab. Pacitan, 63583</span>
+                  <span>Jl. Raya Bandar No. 02, Desa Bandar, Kec. Bandar, Kab. Pacitan, 63583</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Phone className="text-emerald-500 w-5 h-5 shrink-0" />
@@ -248,8 +251,7 @@ const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMen
             </div>
           </div>
           <div className="pt-8 text-center text-sm text-slate-500">
-            &copy; {new Date().getFullYear()} Pemerintah Desa Bandar. All rights reserved.<br />
-            <a href="/admin/login" className="text-emerald-600 hover:underline">Login Admin</a>
+            &copy; {new Date().getFullYear()} Pemerintah Desa Bandar. All rights reserved.
           </div>
         </div>
       </footer>
