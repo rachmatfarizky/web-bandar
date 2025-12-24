@@ -25,15 +25,15 @@
   "homepage": "https://github.com/rachmatfarizky/web-bandar#readme",
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",
+    "@tailwindcss/cli": "^4.1.18",
     "lucide-react": "^0.562.0",
     "next": "^16.1.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.18",
     "autoprefixer": "^10.4.23",
     "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^3.4.19"
   }
 }
