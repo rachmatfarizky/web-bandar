@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Users, Image as ImageIcon, Edit, Trash2, CheckCircle, XCircle, ChevronRight } from 'lucide-react';
 
@@ -12,6 +12,8 @@ const supabase = createClient(
 export default function AdminDusun() {
   const [dusun, setDusun] = useState([]);
   const [form, setForm] = useState({ name: '', population: '', head: '', description: '', commodities: '', image: '' });
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef();
   const [editId, setEditId] = useState(null);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -34,7 +36,28 @@ export default function AdminDusun() {
       setError('Semua field wajib diisi kecuali gambar.');
       return;
     }
-    const dataForm = { ...form, commodities: form.commodities.split(',').map(s => s.trim()) };
+    let imageUrl = form.image;
+    if (fileInputRef.current && fileInputRef.current.files[0]) {
+      setUploading(true);
+      const file = fileInputRef.current.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.url) imageUrl = data.url;
+        else throw new Error(data.error || 'Upload gagal');
+      } catch (err) {
+        setError('Gagal upload gambar: ' + err.message);
+        setUploading(false);
+        return;
+      }
+      setUploading(false);
+    }
+    const dataForm = { ...form, image: imageUrl, commodities: form.commodities.split(',').map(s => s.trim()) };
     let res;
     if (editId) {
       res = await supabase.from('dusun').update(dataForm).eq('id', editId);
@@ -121,9 +144,16 @@ export default function AdminDusun() {
                   <input className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition shadow-sm bg-slate-50" placeholder="Komoditas (pisahkan dengan koma)" value={form.commodities} onChange={e => setForm(f => ({ ...f, commodities: e.target.value }))} required />
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-1 flex items-center gap-2"><ImageIcon className="w-5 h-5 text-emerald-400" /> Link Gambar (opsional)</label>
-                  <input className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition shadow-sm bg-slate-50" placeholder="Link Gambar" value={form.image} onChange={e => setForm(f => ({ ...f, image: e.target.value }))} />
-                  {form.image && <img src={form.image} alt="Preview Gambar" className="w-32 mt-3 rounded-xl border border-slate-200 shadow" />}
+                  <label className="block text-slate-700 font-semibold mb-1 flex items-center gap-2"><ImageIcon className="w-5 h-5 text-emerald-400" /> Upload Gambar (opsional)</label>
+                  <input type="file" accept="image/*" ref={fileInputRef} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" />
+                  {form.image && (
+                    <img
+                      src={form.image}
+                      alt="Preview Gambar"
+                      className="w-32 mt-3 rounded-xl border border-slate-200 shadow"
+                    />
+                  )}
+                  {uploading && <div className="text-emerald-600 text-sm mt-2">Mengupload gambar...</div>}
                 </div>
                 <div className="flex items-center gap-4 mt-4">
                   <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-bold shadow transition" type="submit">{editId ? 'Update' : 'Tambah'} Dusun</button>
