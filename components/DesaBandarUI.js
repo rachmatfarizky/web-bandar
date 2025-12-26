@@ -1,6 +1,107 @@
+// Carousel untuk kartu dusun (auto-slide)
+function DusunCardCarousel({ images, alt }) {
+  const [idx, setIdx] = React.useState(0);
+  React.useEffect(() => {
+    if (!images || images.length <= 1) return;
+    const interval = setInterval(() => {
+      setIdx(i => (i + 1) % images.length);
+    }, 2500); // 2.5 detik
+    return () => clearInterval(interval);
+  }, [images]);
+  if (!images || images.length === 0) {
+    return <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-400">Tidak ada gambar</div>;
+  }
+  return (
+    <div className="w-full h-full relative">
+      <img src={images[idx]} alt={alt} className="w-full h-full object-cover transition duration-700" />
+      {images.length > 1 && (
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-20">
+          {images.map((_, i) => (
+            <span key={i} className={`w-2 h-2 rounded-full ${i === idx ? 'bg-white' : 'bg-white/50'} block`} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 import React from 'react';
 import { MapPin, Users, TreePine, ArrowRight, Menu, X, Phone, Mail, Facebook, Instagram, ChevronRight, Search, User } from 'lucide-react';
 
+
+function DusunDetailModal({ dusun, onClose }) {
+  const [idx, setIdx] = React.useState(0);
+  const images = Array.isArray(dusun.images) && dusun.images.length > 0 ? dusun.images : (dusun.image ? [dusun.image] : []);
+  const hasImages = images.length > 0;
+  const prev = () => setIdx(i => (i - 1 + images.length) % images.length);
+  const next = () => setIdx(i => (i + 1) % images.length);
+  React.useEffect(() => { setIdx(0); }, [dusun]);
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-up">
+        <div className="relative h-64">
+          {hasImages ? (
+            <>
+              <img src={images[idx]} alt={dusun.name} className="w-full h-full object-cover transition duration-300" />
+              {images.length > 1 && (
+                <>
+                  <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full z-20"><ChevronRight className="rotate-180" /></button>
+                  <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full z-20"><ChevronRight /></button>
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-20">
+                    {images.map((_, i) => (
+                      <span key={i} className={`w-2 h-2 rounded-full ${i === idx ? 'bg-white' : 'bg-white/50'} block`} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">Tidak ada gambar</div>
+          )}
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 backdrop-blur-md text-white p-2 rounded-full transition"
+          >
+            <X size={24} />
+          </button>
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+            <h3 className="text-3xl font-bold text-white">{dusun.name}</h3>
+            <p className="text-emerald-300 font-medium">Kepala Dusun: {dusun.head}</p>
+          </div>
+        </div>
+        <div className="p-8">
+          <div className="grid grid-cols-2 gap-6 mb-8">
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <h5 className="text-slate-400 text-xs uppercase font-bold mb-1">Jumlah Penduduk</h5>
+              <p className="text-slate-800 font-semibold text-lg flex items-center gap-2">
+                <Users size={18} className="text-emerald-500" /> {dusun.population}
+              </p>
+            </div>
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <h5 className="text-slate-400 text-xs uppercase font-bold mb-1">Komoditas Utama</h5>
+              <div className="flex gap-2 mt-1">
+                {dusun.commodities.map((item, idx) => (
+                  <span key={idx} className="bg-emerald-100 text-emerald-700 text-xs px-2 py-1 rounded-md font-medium">
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+          <h4 className="font-bold text-slate-800 mb-3">Tentang Dusun</h4>
+          <p className="text-slate-600 leading-relaxed mb-8">
+            {dusun.description}
+          </p>
+          <button 
+            onClick={onClose}
+            className="w-full bg-slate-900 text-white py-3 rounded-xl hover:bg-slate-800 transition font-medium"
+          >
+            Tutup Informasi
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMenuOpen, selectedDusun, setSelectedDusun, searchTerm, setSearchTerm }) => (
   <div className="font-sans text-slate-800 bg-slate-50 min-h-screen">
@@ -140,17 +241,14 @@ const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMen
               >
                 <div className="relative h-56 overflow-hidden">
                   <div className="absolute inset-0 bg-emerald-900/20 group-hover:bg-emerald-900/10 transition z-10"></div>
-                  <img 
-                    src={dusun.image} 
-                    alt={dusun.name} 
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition duration-700"
-                  />
+                  <DusunCardCarousel images={Array.isArray(dusun.images) && dusun.images.length > 0 ? dusun.images : (dusun.image ? [dusun.image] : [])} alt={dusun.name} />
                   <div className="absolute bottom-4 left-4 z-20">
                     <span className="bg-white/90 backdrop-blur-sm text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                       Dusun
                     </span>
                   </div>
                 </div>
+
                 <div className="p-6 flex-grow flex flex-col">
                   <h4 className="text-2xl font-bold text-slate-800 mb-2 group-hover:text-emerald-600 transition">{dusun.name}</h4>
                   <p className="text-slate-500 text-sm mb-4 line-clamp-2">{dusun.description}</p>
@@ -258,54 +356,9 @@ const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMen
 
       {/* --- MODAL DETAIL DUSUN --- */}
       {selectedDusun && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-up">
-            <div className="relative h-64">
-              <img src={selectedDusun.image} alt={selectedDusun.name} className="w-full h-full object-cover" />
-              <button 
-                onClick={() => setSelectedDusun(null)}
-                className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 backdrop-blur-md text-white p-2 rounded-full transition"
-              >
-                <X size={24} />
-              </button>
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-                <h3 className="text-3xl font-bold text-white">{selectedDusun.name}</h3>
-                <p className="text-emerald-300 font-medium">Kepala Dusun: {selectedDusun.head}</p>
-              </div>
-            </div>
-            <div className="p-8">
-              <div className="grid grid-cols-2 gap-6 mb-8">
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <h5 className="text-slate-400 text-xs uppercase font-bold mb-1">Jumlah Penduduk</h5>
-                  <p className="text-slate-800 font-semibold text-lg flex items-center gap-2">
-                    <Users size={18} className="text-emerald-500" /> {selectedDusun.population}
-                  </p>
-                </div>
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <h5 className="text-slate-400 text-xs uppercase font-bold mb-1">Komoditas Utama</h5>
-                  <div className="flex gap-2 mt-1">
-                    {selectedDusun.commodities.map((item, idx) => (
-                      <span key={idx} className="bg-emerald-100 text-emerald-700 text-xs px-2 py-1 rounded-md font-medium">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <h4 className="font-bold text-slate-800 mb-3">Tentang Dusun</h4>
-              <p className="text-slate-600 leading-relaxed mb-8">
-                {selectedDusun.description}
-              </p>
-              <button 
-                onClick={() => setSelectedDusun(null)}
-                className="w-full bg-slate-900 text-white py-3 rounded-xl hover:bg-slate-800 transition font-medium"
-              >
-                Tutup Informasi
-              </button>
-            </div>
-          </div>
-        </div>
+        <DusunDetailModal dusun={selectedDusun} onClose={() => setSelectedDusun(null)} />
       )}
+      {/* ...existing code... */}
 
       {/* Style CSS Tambahan untuk Animasi */}
       <style>{`

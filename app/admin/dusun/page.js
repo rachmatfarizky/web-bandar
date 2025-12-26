@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
+import SidebarAdmin from '../../../components/SidebarAdmin';
 import { createClient } from '@supabase/supabase-js';
 import { Users, Image as ImageIcon, Edit, Trash2, CheckCircle, XCircle, ChevronRight } from 'lucide-react';
 
@@ -11,7 +12,7 @@ const supabase = createClient(
 
 export default function AdminDusun() {
   const [dusun, setDusun] = useState([]);
-  const [form, setForm] = useState({ name: '', population: '', head: '', description: '', commodities: '', image: '' });
+  const [form, setForm] = useState({ name: '', population: '', head: '', description: '', commodities: '', images: [] });
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef();
   const [editId, setEditId] = useState(null);
@@ -36,28 +37,31 @@ export default function AdminDusun() {
       setError('Semua field wajib diisi kecuali gambar.');
       return;
     }
-    let imageUrl = form.image;
-    if (fileInputRef.current && fileInputRef.current.files[0]) {
+    let imagesArr = Array.isArray(form.images) ? [...form.images] : [];
+    if (fileInputRef.current && fileInputRef.current.files.length > 0) {
       setUploading(true);
-      const file = fileInputRef.current.files[0];
-      const formData = new FormData();
-      formData.append('file', file);
-      try {
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
-        });
-        const data = await res.json();
-        if (data.url) imageUrl = data.url;
-        else throw new Error(data.error || 'Upload gagal');
-      } catch (err) {
-        setError('Gagal upload gambar: ' + err.message);
-        setUploading(false);
-        return;
+      const files = Array.from(fileInputRef.current.files);
+      imagesArr = [];
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+          const res = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+          });
+          const data = await res.json();
+          if (data.url) imagesArr.push(data.url);
+          else throw new Error(data.error || 'Upload gagal');
+        } catch (err) {
+          setError('Gagal upload gambar: ' + err.message);
+          setUploading(false);
+          return;
+        }
       }
       setUploading(false);
     }
-    const dataForm = { ...form, image: imageUrl, commodities: form.commodities.split(',').map(s => s.trim()) };
+    const dataForm = { ...form, images: imagesArr, commodities: form.commodities.split(',').map(s => s.trim()) };
     let res;
     if (editId) {
       res = await supabase.from('dusun').update(dataForm).eq('id', editId);
@@ -70,7 +74,7 @@ export default function AdminDusun() {
       setError(res.error.message);
       setSuccess('');
     } else {
-      setForm({ name: '', population: '', head: '', description: '', commodities: '', image: '' });
+      setForm({ name: '', population: '', head: '', description: '', commodities: '', images: [] });
       setEditId(null);
       setModalOpen(false);
       fetchDusun();
@@ -89,7 +93,7 @@ export default function AdminDusun() {
       head: item.head,
       description: item.description,
       commodities: item.commodities.join(', '),
-      image: item.image
+      images: Array.isArray(item.images) ? item.images : []
     });
     setEditId(item.id);
     setSuccess('');
@@ -98,7 +102,7 @@ export default function AdminDusun() {
   }
 
   function handleAdd() {
-    setForm({ name: '', population: '', head: '', description: '', commodities: '', image: '' });
+    setForm({ name: '', population: '', head: '', description: '', commodities: '', images: [] });
     setEditId(null);
     setSuccess('');
     setError('');
@@ -106,8 +110,10 @@ export default function AdminDusun() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100 py-10 px-2 md:px-0">
-      <div className="max-w-3xl mx-auto">
+    <>
+      <SidebarAdmin active="dusun" />
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100 py-10 px-2 md:px-0" style={{ marginLeft: '224px' }}>
+        <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-extrabold mb-8 text-slate-800 flex items-center gap-3"><Users className="w-8 h-8 text-emerald-600" /> Kelola Data Dusun</h1>
         <div className="flex justify-end mb-6">
           <button onClick={handleAdd} className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-bold shadow transition flex items-center gap-2">
@@ -144,14 +150,27 @@ export default function AdminDusun() {
                   <input className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition shadow-sm bg-slate-50" placeholder="Komoditas (pisahkan dengan koma)" value={form.commodities} onChange={e => setForm(f => ({ ...f, commodities: e.target.value }))} required />
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-1 flex items-center gap-2"><ImageIcon className="w-5 h-5 text-emerald-400" /> Upload Gambar (opsional)</label>
-                  <input type="file" accept="image/*" ref={fileInputRef} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" />
-                  {form.image && (
-                    <img
-                      src={form.image}
-                      alt="Preview Gambar"
-                      className="w-32 mt-3 rounded-xl border border-slate-200 shadow"
-                    />
+                  <label className="block text-slate-700 font-semibold mb-1 items-center gap-2"><ImageIcon className="w-5 h-5 text-emerald-400" /> Upload Gambar (bisa lebih dari satu)</label>
+                  <input type="file" accept="image/*" ref={fileInputRef} multiple className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" />
+                  {form.images && form.images.length > 0 && (
+                    <div className="flex gap-2 mt-3 flex-wrap">
+                      {form.images.map((img, idx) => (
+                        <div key={idx} className="relative group">
+                          <img src={img} alt={`Preview Gambar ${idx+1}`} className="w-20 h-20 object-cover rounded-xl border border-slate-200 shadow" />
+                          <button
+                            type="button"
+                            title="Hapus gambar ini"
+                            onClick={() => setForm(f => ({
+                              ...f,
+                              images: f.images.filter((_, i) => i !== idx)
+                            }))}
+                            className="absolute top-1 right-1 bg-white/80 hover:bg-red-500 text-red-500 hover:text-white rounded-full p-1 shadow transition-opacity opacity-80 group-hover:opacity-100"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
                   {uploading && <div className="text-emerald-600 text-sm mt-2">Mengupload gambar...</div>}
                 </div>
@@ -187,7 +206,7 @@ export default function AdminDusun() {
             {dusun.map(item => (
               <li key={item.id} className="py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex items-start gap-5 flex-1">
-                  {item.image && <img src={item.image} alt="Gambar Dusun" className="w-24 h-24 object-cover rounded-xl border border-slate-200 shadow" />}
+                  {item.images && item.images.length > 0 && <img src={item.images[0]} alt="Gambar Dusun" className="w-24 h-24 object-cover rounded-xl border border-slate-200 shadow" />}
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-bold text-lg text-slate-800">{item.name}</span>
@@ -207,7 +226,8 @@ export default function AdminDusun() {
             {dusun.length === 0 && <li className="text-slate-400 text-center py-8">Belum ada data dusun.</li>}
           </ul>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
