@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import DesaBandarUI from "../components/DesaBandarUI";
-import { fetchDusunData } from "../lib/supabase";
+import { fetchDusunData, fetchArtikelData } from "../lib/supabase";
 
 const DesaBandarPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -9,6 +9,7 @@ const DesaBandarPage = () => {
   const [selectedDusun, setSelectedDusun] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [dusunData, setDusunData] = useState([]);
+  const [artikelData, setArtikelData] = useState([]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -18,6 +19,7 @@ const DesaBandarPage = () => {
 
   useEffect(() => {
     fetchDusunData().then(setDusunData).catch(console.error);
+    fetchArtikelData().then(setArtikelData).catch(console.error);
   }, []);
 
   const filteredDusun = dusunData.filter((dusun) =>
@@ -28,6 +30,7 @@ const DesaBandarPage = () => {
     <DesaBandarUI
       dusunData={dusunData}
       filteredDusun={filteredDusun}
+      artikelData={artikelData}
       scrolled={scrolled}
       isMenuOpen={isMenuOpen}
       setIsMenuOpen={setIsMenuOpen}

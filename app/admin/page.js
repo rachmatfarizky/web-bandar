@@ -40,7 +40,7 @@ export default function AdminDashboard() {
 
   return (
     <>
-      <SidebarAdmin active="home" onLogout={handleLogout} />
+      <SidebarAdmin active="home" onLogout={handleLogout} user={user} />
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100" style={{ marginLeft: '224px' }}>
         {/* Topbar */}
         <header className="flex items-center justify-between px-6 py-6 bg-white border-b border-slate-100 shadow-sm sticky top-0 z-20">
@@ -53,11 +53,7 @@ export default function AdminDashboard() {
           <div className="hidden md:block">
             <h1 className="text-2xl font-bold text-slate-800">Dashboard Admin</h1>
           </div>
-          <div className="flex items-center gap-3">
-            {user && (
-              <span className="text-slate-600 text-sm">{user.email}</span>
-            )}
-          </div>
+          <div />
         </header>
 
         {/* Dashboard Content */}
@@ -81,7 +77,7 @@ export default function AdminDashboard() {
               <Home className="w-10 h-10 text-emerald-500 bg-emerald-100 rounded-xl p-2" />
               <div>
                 <p className="text-slate-500 text-sm">Selamat Datang</p>
-                <h3 className="text-2xl font-bold text-slate-800">Admin</h3>
+                <h3 className="text-2xl font-bold text-slate-800">{user?.user_metadata?.name || user?.email || "Admin"}</h3>
               </div>
             </div>
           </div>

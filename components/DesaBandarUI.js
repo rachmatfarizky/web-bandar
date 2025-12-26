@@ -1,3 +1,7 @@
+import React from 'react';
+import Link from 'next/link';
+import { MapPin, Users, TreePine, ArrowRight, Menu, X, Phone, Mail, Facebook, Instagram, ChevronRight, Search, User } from 'lucide-react';
+
 // Carousel untuk kartu dusun (auto-slide)
 function DusunCardCarousel({ images, alt }) {
   const [idx, setIdx] = React.useState(0);
@@ -24,9 +28,6 @@ function DusunCardCarousel({ images, alt }) {
     </div>
   );
 }
-import React from 'react';
-import { MapPin, Users, TreePine, ArrowRight, Menu, X, Phone, Mail, Facebook, Instagram, ChevronRight, Search, User } from 'lucide-react';
-
 
 function DusunDetailModal({ dusun, onClose }) {
   const [idx, setIdx] = React.useState(0);
@@ -103,7 +104,14 @@ function DusunDetailModal({ dusun, onClose }) {
   );
 }
 
-const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMenuOpen, selectedDusun, setSelectedDusun, searchTerm, setSearchTerm }) => (
+const DesaBandarUI = ({ dusunData, filteredDusun, artikelData = [], scrolled, isMenuOpen, setIsMenuOpen, selectedDusun, setSelectedDusun, searchTerm, setSearchTerm }) => {
+  function getDusunName(dusun_id) {
+    const dusun = dusunData.find(d => d.id === dusun_id);
+    return dusun ? dusun.name : '';
+  }
+
+
+  return (
   <div className="font-sans text-slate-800 bg-slate-50 min-h-screen">
       {/* --- NAVBAR --- */}
       <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-emerald-900 shadow-lg py-3' : 'bg-transparent py-5'}`}>
@@ -187,7 +195,7 @@ const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMen
             </div>
             <div>
               <p className="text-slate-500 text-sm">Total Penduduk</p>
-              <h3 className="text-2xl font-bold text-slate-800">3,450+ <span className="text-sm font-normal">Jiwa</span></h3>
+              <h3 className="text-2xl font-bold text-slate-800">8234 <span className="text-sm font-normal">Jiwa (BPS, 2024)</span></h3>
             </div>
           </div>
           <div className="flex items-center gap-4 py-4 md:py-0 justify-center md:justify-start px-4">
@@ -196,7 +204,7 @@ const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMen
             </div>
             <div>
               <p className="text-slate-500 text-sm">Luas Wilayah</p>
-              <h3 className="text-2xl font-bold text-slate-800">850 <span className="text-sm font-normal">Ha</span></h3>
+              <h3 className="text-2xl font-bold text-slate-800">100 <span className="text-sm font-normal">Ha (BPS, 2024)</span></h3>
             </div>
           </div>
           <div className="flex items-center gap-4 py-4 md:py-0 justify-center md:justify-start px-4">
@@ -275,6 +283,46 @@ const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMen
         </div>
       </section>
 
+      {/* --- ARTIKEL TERBARU --- */}
+      {artikelData && artikelData.length > 0 && (
+        <section id="artikel" className="py-20 container mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-emerald-600 font-bold uppercase tracking-wide text-sm mb-2">Informasi & Berita</h2>
+            <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">Artikel Terbaru</h3>
+            <p className="text-slate-600 max-w-2xl mx-auto mb-8">
+              Kumpulan artikel, berita, dan informasi seputar Desa Bandar dan dusun-dusunnya.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {artikelData.map((artikel) => (
+              <Link
+                key={artikel.id}
+                href={`/artikel/${artikel.id}`}
+                className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden flex flex-col cursor-pointer hover:shadow-2xl transition-all duration-200 no-underline"
+                tabIndex={0}
+              >
+                {artikel.image && (
+                  <img src={artikel.image} alt={artikel.title} className="w-full h-48 object-cover" />
+                )}
+                <div className="p-6 flex flex-col flex-1">
+                  <h4 className="text-xl font-bold text-slate-800 mb-2 line-clamp-2">{artikel.title}</h4>
+                  <p className="text-slate-500 text-sm mb-4 line-clamp-3">{artikel.content}</p>
+                  <div className="mt-auto flex items-center justify-between text-xs text-slate-400">
+                    {artikel.created_at && (
+                      <span>{new Date(artikel.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    )}
+                    {artikel.dusun_id && getDusunName(artikel.dusun_id) && (
+                      <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full ml-2">{getDusunName(artikel.dusun_id)}</span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+        </section>
+      )}
+
       {/* --- VISI MISI / TENTANG --- */}
       <section id="tentang" className="bg-emerald-900 py-20 text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
@@ -341,10 +389,10 @@ const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMen
             <div>
               <h3 className="text-white font-bold mb-6">Akses Cepat</h3>
               <ul className="space-y-3 text-sm">
-                <li><a href="#" className="hover:text-emerald-400 transition">Layanan Surat</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition">Transparansi Anggaran</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition">Berita Desa</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition">Pengaduan Masyarakat</a></li>
+                <li><Link href="/layanan-surat" className="hover:text-emerald-400 transition">Layanan Surat</Link></li>
+                <li><Link href="/transparansi-anggaran" className="hover:text-emerald-400 transition">Transparansi Anggaran</Link></li>
+                <li><Link href="/berita-desa" className="hover:text-emerald-400 transition">Berita Desa</Link></li>
+                <li><Link href="/pengaduan-masyarakat" className="hover:text-emerald-400 transition">Pengaduan Masyarakat</Link></li>
               </ul>
             </div>
           </div>
@@ -378,6 +426,7 @@ const DesaBandarUI = ({ dusunData, filteredDusun, scrolled, isMenuOpen, setIsMen
         }
       `}</style>
     </div>
-);
+  );
+}
 
 export default DesaBandarUI;
