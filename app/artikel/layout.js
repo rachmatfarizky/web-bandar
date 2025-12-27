@@ -23,7 +23,6 @@ export default function ArtikelLayout({ children }) {
             <Link href="/" className="hover:text-emerald-300 transition">Beranda</Link>
             <a href="/#tentang" className="hover:text-emerald-300 transition">Profil Desa</a>
             <a href="/#dusun" className="hover:text-emerald-300 transition">Data Dusun</a>
-            <a href="/#kontak" className="hover:text-emerald-300 transition">Kontak</a>
           </div>
         </div>
       </nav>

@@ -12,8 +12,9 @@ const supabase = createClient(
 
 export default function AdminArtikel() {
   const [artikel, setArtikel] = useState([]);
-  const [form, setForm] = useState({ title: '', content: '', dusun_id: '', image: '' });
+  const [form, setForm] = useState({ title: '', content: '', dusun_id: '', image: '', authors: [] });
   const [dusunList, setDusunList] = useState([]);
+  const [adminList, setAdminList] = useState([]);
   const [editId, setEditId] = useState(null);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -24,6 +25,7 @@ export default function AdminArtikel() {
   useEffect(() => {
     fetchArtikel();
     fetchDusun();
+    fetchAdmin();
   }, []);
 
   async function fetchArtikel() {
@@ -34,6 +36,22 @@ export default function AdminArtikel() {
   async function fetchDusun() {
     const { data, error } = await supabase.from('dusun').select('id, name');
     if (!error) setDusunList(data);
+  }
+
+  async function fetchAdmin() {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session?.session?.access_token;
+      const res = await fetch('/api/admins', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      const data = await res.json();
+      if (data.admins) {
+        setAdminList(data.admins);
+      }
+    } catch (err) {
+      console.error('Error fetching admins:', err);
+    }
   }
 
   async function handleSubmit(e) {
@@ -61,7 +79,8 @@ export default function AdminArtikel() {
       }
       setUploading(false);
     }
-    const dataForm = { ...form, image: imageUrl };
+    // Ensure authors is always an array (for jsonb column)
+    const dataForm = { ...form, image: imageUrl, authors: Array.isArray(form.authors) ? form.authors : [] };
     let res;
     if (editId) {
       res = await supabase.from('artikel').update(dataForm).eq('id', editId);
@@ -74,7 +93,7 @@ export default function AdminArtikel() {
       setError(res.error.message);
       setSuccess('');
     } else {
-      setForm({ title: '', content: '', dusun_id: '', image: '' });
+      setForm({ title: '', content: '', dusun_id: '', image: '', authors: [] });
       setEditId(null);
       setModalOpen(false);
       fetchArtikel();
@@ -87,11 +106,27 @@ export default function AdminArtikel() {
   }
 
   function handleEdit(item) {
+    let authorsArray = [];
+    
+    // Handle different formats the authors might be stored in
+    if (Array.isArray(item.authors)) {
+      authorsArray = item.authors;
+    } else if (typeof item.authors === 'string') {
+      try {
+        authorsArray = JSON.parse(item.authors);
+      } catch (e) {
+        authorsArray = item.authors ? [item.authors] : [];
+      }
+    } else if (item.author) {
+      authorsArray = [item.author];
+    }
+
     setForm({
       title: item.title,
       content: item.content,
       dusun_id: item.dusun_id || '',
-      image: item.image || ''
+      image: item.image || '',
+      authors: Array.isArray(authorsArray) ? authorsArray : []
     });
     setEditId(item.id);
     setSuccess('');
@@ -100,7 +135,7 @@ export default function AdminArtikel() {
   }
 
   function handleAdd() {
-    setForm({ title: '', content: '', dusun_id: '', image: '' });
+    setForm({ title: '', content: '', dusun_id: '', image: '', author: '' });
     setEditId(null);
     setSuccess('');
     setError('');
@@ -122,7 +157,7 @@ export default function AdminArtikel() {
         {modalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 relative animate-scale-up border border-slate-100">
-              <button onClick={() => { setModalOpen(false); setEditId(null); setForm({ title: '', content: '', dusun_id: '', image: '' }); setSuccess(''); setError(''); }} className="absolute top-4 right-4 text-slate-400 hover:text-red-500 text-xl font-bold">&times;</button>
+              <button onClick={() => { setModalOpen(false); setEditId(null); setForm({ title: '', content: '', dusun_id: '', image: '', author: '' }); setSuccess(''); setError(''); }} className="absolute top-4 right-4 text-slate-400 hover:text-red-500 text-xl font-bold">&times;</button>
               <h2 className="text-xl font-bold mb-6 text-emerald-700">{editId ? 'Edit Artikel' : 'Tambah Artikel Baru'}</h2>
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
@@ -141,6 +176,32 @@ export default function AdminArtikel() {
                   </select>
                 </div>
                 <div>
+                  <label className="block text-slate-700 font-semibold mb-3">Pilih Penulis (Author)</label>
+                  <div className="border border-slate-200 rounded-xl p-4 bg-slate-50 max-h-48 overflow-y-auto">
+                    {adminList.length > 0 ? adminList.map(admin => (
+                      <div key={admin.id} className="flex items-center gap-3 mb-3">
+                        <input
+                          type="checkbox"
+                          id={`author-${admin.id}`}
+                          checked={Array.isArray(form.authors) && form.authors.includes(admin.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setForm(f => ({ ...f, authors: Array.isArray(f.authors) ? [...f.authors, admin.id] : [admin.id] }));
+                            } else {
+                              setForm(f => ({ ...f, authors: Array.isArray(f.authors) ? f.authors.filter(id => id !== admin.id) : [] }));
+                            }
+                          }}
+                          className="w-4 h-4 text-emerald-600 rounded focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                        />
+                        <label htmlFor={`author-${admin.id}`} className="cursor-pointer flex-1">
+                          <span className="font-medium text-slate-800">{admin.name}</span>
+                          <span className="text-xs text-slate-500 ml-2">({admin.email})</span>
+                        </label>
+                      </div>
+                    )) : <div className="text-slate-400 text-sm">Tidak ada penulis tersedia</div>}
+                  </div>
+                </div>
+                <div>
                   <label className="block text-slate-700 font-semibold mb-1">Upload Gambar (opsional)</label>
                   <input type="file" accept="image/*" ref={fileInputRef} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" />
                   {form.image && <img src={form.image} alt="Preview" className="w-24 h-24 object-cover rounded-xl border border-slate-200 shadow mt-2" />}
@@ -148,7 +209,7 @@ export default function AdminArtikel() {
                 </div>
                 <div className="flex items-center gap-4 mt-4">
                   <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-bold shadow transition" type="submit">{editId ? 'Update' : 'Tambah'} Artikel</button>
-                  {editId && <button type="button" className="ml-2 text-red-500 font-semibold hover:underline" onClick={() => { setEditId(null); setForm({ title: '', content: '', dusun_id: '', image: '' }); setSuccess(''); setError(''); setModalOpen(false); }}>Batal Edit</button>}
+                  {editId && <button type="button" className="ml-2 text-red-500 font-semibold hover:underline" onClick={() => { setEditId(null); setForm({ title: '', content: '', dusun_id: '', image: '', authors: [] }); setSuccess(''); setError(''); setModalOpen(false); }}>Batal Edit</button>}
                 </div>
                 {success && <div className="flex items-center gap-2 text-green-600 mt-3"><CheckCircle className="w-5 h-5" /> {success}</div>}
                 {error && <div className="flex items-center gap-2 text-red-500 mt-3"><XCircle className="w-5 h-5" /> {error}</div>}
@@ -182,9 +243,34 @@ export default function AdminArtikel() {
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-bold text-lg text-slate-800">{item.title}</span>
-                      {item.dusun_id && <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full ml-2">Dusun: {dusunList.find(d => d.id === item.dusun_id)?.name || '-'}</span>}
                     </div>
-                    <div className="text-slate-600 text-sm mb-1 line-clamp-2">{item.content}</div>
+                    <div className="text-slate-600 text-sm mb-2 line-clamp-2">{item.content}</div>
+                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                      {item.dusun_id && (
+                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
+                          Dusun: {dusunList.find(d => d.id === item.dusun_id)?.name || '-'}
+                        </span>
+                      )}
+                      {/* Author badges (moved to bottom) */}
+                      {(() => {
+                        let authorsArray = [];
+                        if (Array.isArray(item.authors)) {
+                          authorsArray = item.authors;
+                        } else if (typeof item.authors === 'string') {
+                          try { authorsArray = JSON.parse(item.authors); } catch { authorsArray = item.authors ? [item.authors] : []; }
+                        } else if (item.author) {
+                          authorsArray = [item.author];
+                        }
+                        const authorNames = authorsArray
+                          .map(id => adminList.find(a => a.id === id)?.name || id)
+                          .filter(Boolean);
+                        return authorNames.length > 0 ? (
+                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                            Penulis: {authorNames.join(', ')}
+                          </span>
+                        ) : null;
+                      })()}
+                    </div>
                   </div>
                 </div>
                 <div className="flex gap-2 mt-3 md:mt-0">
