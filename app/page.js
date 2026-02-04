@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import DesaBandarUI from "../components/DesaBandarUI";
-import { fetchDusunData, fetchArtikelData } from "../lib/supabase";
+// Data diambil dari API agar tidak error di client
 
 const DesaBandarPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -10,6 +10,7 @@ const DesaBandarPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [dusunData, setDusunData] = useState([]);
   const [artikelData, setArtikelData] = useState([]);
+  const [adminData, setAdminData] = useState([]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -18,8 +19,27 @@ const DesaBandarPage = () => {
   }, []);
 
   useEffect(() => {
-    fetchDusunData().then(setDusunData).catch(console.error);
-    fetchArtikelData().then(setArtikelData).catch(console.error);
+    async function fetchData() {
+      try {
+        const res = await fetch('/api/public-data');
+        const data = await res.json();
+        if (data.dusun) setDusunData(data.dusun);
+        if (data.artikel) setArtikelData(data.artikel);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    async function fetchAdmins() {
+      try {
+        const res = await fetch('/api/admins');
+        const data = await res.json();
+        if (data.admins) setAdminData(data.admins);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    fetchData();
+    fetchAdmins();
   }, []);
 
   const filteredDusun = dusunData.filter((dusun) =>
@@ -31,6 +51,7 @@ const DesaBandarPage = () => {
       dusunData={dusunData}
       filteredDusun={filteredDusun}
       artikelData={artikelData}
+      adminData={adminData}
       scrolled={scrolled}
       isMenuOpen={isMenuOpen}
       setIsMenuOpen={setIsMenuOpen}

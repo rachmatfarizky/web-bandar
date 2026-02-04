@@ -24,17 +24,27 @@
   },
   "homepage": "https://github.com/rachmatfarizky/web-bandar#readme",
   "dependencies": {
-    "@supabase/supabase-js": "^2.89.0",
     "@tailwindcss/cli": "^4.1.18",
+    "@tiptap/extension-image": "^3.14.0",
+    "@tiptap/extension-link": "^3.14.0",
+    "@tiptap/extension-placeholder": "^3.14.0",
+    "@tiptap/extension-text-align": "^3.14.0",
+    "@tiptap/extension-underline": "^3.14.0",
+    "@tiptap/react": "^3.14.0",
+    "@tiptap/starter-kit": "^3.14.0",
+    "bcryptjs": "^3.0.3",
+    "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.562.0",
+    "mysql2": "^3.16.2",
     "next": "^16.1.1",
     "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "react-dom": "^19.2.3",
+    "react-select": "^5.10.2",
+    "sanitize-html": "^2.17.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.23",
     "postcss": "^8.5.6",
-    "stylelint-config-tailwindcss": "^1.0.0",
-    "tailwindcss": "^3.4.19"
+    "tailwindcss": "^3.4.3"
   }
 }

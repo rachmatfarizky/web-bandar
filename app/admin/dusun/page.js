@@ -2,41 +2,69 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import SidebarAdmin from '../../../components/SidebarAdmin';
-import { createClient } from '@supabase/supabase-js';
-import { Users, Image as ImageIcon, Edit, Trash2, CheckCircle, XCircle, ChevronRight } from 'lucide-react';
+import { Users, Image as ImageIcon, Edit, Trash2, AlertCircle, Check, X, ChevronLeft, Plus } from 'lucide-react';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+import { useRouter } from 'next/navigation';
 
 export default function AdminDusun() {
   const [dusun, setDusun] = useState([]);
+  const [user, setUser] = useState(null);
   const [form, setForm] = useState({ name: '', population: '', head: '', description: '', commodities: '', images: [] });
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef();
   const [editId, setEditId] = useState(null);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState({ type: '', text: '' });
   const [modalOpen, setModalOpen] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({ show: false, type: '', id: null, name: '' });
+  const router = useRouter();
+
+  async function handleLogout() {
+    // Call logout API to clear server-side cookie
+    await fetch('/api/admin/logout', { method: 'POST' });
+    // Also clear localStorage for compatibility
+    localStorage.removeItem('admin_session');
+    router.push('/admin/login');
+  }
 
   useEffect(() => {
+    // Get session and fetch user info
+    const session = localStorage.getItem('admin_session');
+    if (session) {
+      fetch('/api/admins/me', { headers: { 'Authorization': `Bearer ${session}` } })
+        .then(res => res.json())
+        .then(data => { if (data && data.user) setUser(data.user); });
+    }
     fetchDusun();
   }, []);
 
   async function fetchDusun() {
-    const { data, error } = await supabase.from('dusun').select('*');
-    if (!error) setDusun(data);
+    try {
+      const res = await fetch('/api/dusun');
+      const data = await res.json();
+      if (data.dusun) setDusun(data.dusun);
+    } catch (err) {
+      // handle error
+    }
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setMessage({ type: '', text: '' });
     if (!form.name || !form.population || !form.head || !form.description || !form.commodities) {
-      setError('Semua field wajib diisi kecuali gambar.');
+      setMessage({ type: 'error', text: 'Semua field wajib diisi kecuali gambar.' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 5000);
       return;
     }
+    setConfirmModal({ 
+      show: true, 
+      type: editId ? 'update' : 'create', 
+      name: form.name 
+    });
+  }
+
+  async function handleConfirmSubmit() {
+    setConfirmModal({ show: false, type: '', id: null, name: '' });
+    
     let imagesArr = Array.isArray(form.images) ? [...form.images] : [];
     if (fileInputRef.current && fileInputRef.current.files.length > 0) {
       setUploading(true);
@@ -54,103 +82,149 @@ export default function AdminDusun() {
           if (data.url) imagesArr.push(data.url);
           else throw new Error(data.error || 'Upload gagal');
         } catch (err) {
-          setError('Gagal upload gambar: ' + err.message);
+          setMessage({ type: 'error', text: 'Gagal upload gambar: ' + err.message });
           setUploading(false);
+          setTimeout(() => setMessage({ type: '', text: '' }), 5000);
           return;
         }
       }
       setUploading(false);
     }
     const dataForm = { ...form, images: imagesArr, commodities: form.commodities.split(',').map(s => s.trim()) };
-    let res;
-    if (editId) {
-      res = await supabase.from('dusun').update(dataForm).eq('id', editId);
-      setSuccess('Data dusun berhasil diupdate!');
-    } else {
-      res = await supabase.from('dusun').insert([dataForm]);
-      setSuccess('Dusun baru berhasil ditambahkan!');
-    }
-    if (res.error) {
-      setError(res.error.message);
-      setSuccess('');
-    } else {
+    try {
+      if (editId) {
+        await fetch('/api/dusun', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editId, ...dataForm })
+        });
+        setMessage({ type: 'success', text: 'Data dusun berhasil diupdate!' });
+      } else {
+        await fetch('/api/dusun', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dataForm)
+        });
+        setMessage({ type: 'success', text: 'Dusun baru berhasil ditambahkan!' });
+      }
       setForm({ name: '', population: '', head: '', description: '', commodities: '', images: [] });
       setEditId(null);
       setModalOpen(false);
       fetchDusun();
+      setTimeout(() => setMessage({ type: '', text: '' }), 2000);
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Gagal menyimpan data.' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 5000);
+    }
+  }
+
+  async function handleDeleteClick(id, name) {
+    setConfirmModal({ 
+      show: true, 
+      type: 'delete', 
+      id, 
+      name 
+    });
+  }
+
+  async function handleConfirmDelete() {
+    const { id } = confirmModal;
+    setConfirmModal({ show: false, type: '', id: null, name: '' });
+    
+    try {
+      await fetch('/api/dusun', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      setMessage({ type: 'success', text: 'Dusun berhasil dihapus!' });
+      fetchDusun();
+      setTimeout(() => setMessage({ type: '', text: '' }), 2000);
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Gagal menghapus data.' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 5000);
     }
   }
 
   async function handleDelete(id) {
-    await supabase.from('dusun').delete().eq('id', id);
-    fetchDusun();
+    try {
+      await fetch('/api/dusun', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      fetchDusun();
+    } catch (err) {
+      // handle error
+    }
   }
 
   function handleEdit(item) {
+    const commoditiesArr = Array.isArray(item.commodities) 
+      ? item.commodities 
+      : JSON.parse(item.commodities || '[]');
     setForm({
       name: item.name,
       population: item.population,
       head: item.head,
       description: item.description,
-      commodities: item.commodities.join(', '),
-      images: Array.isArray(item.images) ? item.images : []
+      commodities: commoditiesArr.join(', '),
+      images: Array.isArray(item.images) ? item.images : JSON.parse(item.images || '[]')
     });
     setEditId(item.id);
-    setSuccess('');
-    setError('');
+    setMessage({ type: '', text: '' });
     setModalOpen(true);
   }
 
   function handleAdd() {
     setForm({ name: '', population: '', head: '', description: '', commodities: '', images: [] });
     setEditId(null);
-    setSuccess('');
-    setError('');
+    setMessage({ type: '', text: '' });
     setModalOpen(true);
   }
 
   return (
     <>
-      <SidebarAdmin active="dusun" />
+      <SidebarAdmin active="dusun" onLogout={handleLogout} user={user} />
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100 py-10 px-2 md:px-0" style={{ marginLeft: '224px' }}>
         <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-extrabold mb-8 text-slate-800 flex items-center gap-3"><Users className="w-8 h-8 text-emerald-600" /> Kelola Data Dusun</h1>
         <div className="flex justify-end mb-6">
           <button onClick={handleAdd} className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-bold shadow transition flex items-center gap-2">
-            + Tambah Dusun
+            <Plus size={20}/> Tambah Dusun
           </button>
         </div>
         {/* Modal Form Tambah/Edit */}
         {modalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 relative animate-scale-up border border-slate-100">
-              <button onClick={() => { setModalOpen(false); setEditId(null); setForm({ name: '', population: '', head: '', description: '', commodities: '', image: '' }); setSuccess(''); setError(''); }} className="absolute top-4 right-4 text-slate-400 hover:text-red-500 text-xl font-bold">&times;</button>
+              <button onClick={() => { setModalOpen(false); setEditId(null); setForm({ name: '', population: '', head: '', description: '', commodities: '', image: '' }); setMessage({ type: '', text: '' }); }} className="absolute top-4 right-4 text-slate-400 hover:text-red-500 text-xl font-bold">&times;</button>
               <h2 className="text-xl font-bold mb-6 text-emerald-700">{editId ? 'Edit Dusun' : 'Tambah Dusun Baru'}</h2>
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <label className="block text-slate-700 font-semibold mb-1">Nama Dusun</label>
-                  <input className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition shadow-sm bg-slate-50" placeholder="Nama Dusun" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
+                  <input className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition shadow-sm bg-slate-50" placeholder="Nama Dusun" value={form.name ?? ''} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-slate-700 font-semibold mb-1">Jumlah Penduduk</label>
-                    <input className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition shadow-sm bg-slate-50" placeholder="Jumlah Penduduk" value={form.population} onChange={e => setForm(f => ({ ...f, population: e.target.value }))} required />
+                    <input className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition shadow-sm bg-slate-50" placeholder="Jumlah Penduduk" value={form.population ?? ''} onChange={e => setForm(f => ({ ...f, population: e.target.value }))} required />
                   </div>
                   <div>
                     <label className="block text-slate-700 font-semibold mb-1">Kepala Dusun</label>
-                    <input className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition shadow-sm bg-slate-50" placeholder="Kepala Dusun" value={form.head} onChange={e => setForm(f => ({ ...f, head: e.target.value }))} required />
+                    <input className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition shadow-sm bg-slate-50" placeholder="Kepala Dusun" value={form.head ?? ''} onChange={e => setForm(f => ({ ...f, head: e.target.value }))} required />
                   </div>
                 </div>
                 <div>
                   <label className="block text-slate-700 font-semibold mb-1">Deskripsi</label>
-                  <textarea className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition shadow-sm bg-slate-50" placeholder="Deskripsi" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} required rows={3} />
+                  <textarea className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition shadow-sm bg-slate-50" placeholder="Deskripsi" value={form.description ?? ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} required rows={3} />
                 </div>
                 <div>
                   <label className="block text-slate-700 font-semibold mb-1">Komoditas (pisahkan dengan koma)</label>
-                  <input className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition shadow-sm bg-slate-50" placeholder="Komoditas (pisahkan dengan koma)" value={form.commodities} onChange={e => setForm(f => ({ ...f, commodities: e.target.value }))} required />
+                  <input className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition shadow-sm bg-slate-50" placeholder="Komoditas (pisahkan dengan koma)" value={form.commodities ?? ''} onChange={e => setForm(f => ({ ...f, commodities: e.target.value }))} required />
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-1 items-center gap-2"><ImageIcon className="w-5 h-5 text-emerald-400" /> Upload Gambar (bisa lebih dari satu)</label>
+                  <label className="block text-slate-700 font-semibold mb-1 items-center gap-2">Upload Gambar (Bisa banyak)</label>
                   <input type="file" accept="image/*" ref={fileInputRef} multiple className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" />
                   {form.images && form.images.length > 0 && (
                     <div className="flex gap-2 mt-3 flex-wrap">
@@ -176,12 +250,99 @@ export default function AdminDusun() {
                 </div>
                 <div className="flex items-center gap-4 mt-4">
                   <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-bold shadow transition" type="submit">{editId ? 'Update' : 'Tambah'} Dusun</button>
-                  {editId && <button type="button" className="ml-2 text-red-500 font-semibold hover:underline" onClick={() => { setEditId(null); setForm({ name: '', population: '', head: '', description: '', commodities: '', image: '' }); setSuccess(''); setError(''); setModalOpen(false); }}>Batal Edit</button>}
+                  {editId && <button type="button" className="ml-2 text-red-500 font-semibold hover:underline" onClick={() => { setEditId(null); setForm({ name: '', population: '', head: '', description: '', commodities: '', image: '' }); setMessage({ type: '', text: '' }); setModalOpen(false); }}>Batal Edit</button>}
                 </div>
-                {success && <div className="flex items-center gap-2 text-green-600 mt-3"><CheckCircle className="w-5 h-5" /> {success}</div>}
-                {error && <div className="flex items-center gap-2 text-red-500 mt-3"><XCircle className="w-5 h-5" /> {error}</div>}
               </form>
             </div>
+
+        {/* Message Toast */}
+        {message.text && (
+          <div className={`fixed top-6 right-6 max-w-md rounded-lg shadow-lg flex items-center gap-3 px-6 py-4 backdrop-blur-sm z-40 animate-slide-in ${
+            message.type === 'success' 
+              ? 'bg-emerald-500/90 text-white border border-emerald-400' 
+              : 'bg-rose-500/90 text-white border border-rose-400'
+          }`}>
+            {message.type === 'success' ? (
+              <Check size={20} className="flex-shrink-0" />
+            ) : (
+              <AlertCircle size={20} className="flex-shrink-0" />
+            )}
+            <div className="flex-1">
+              <p className="font-semibold">{message.text}</p>
+            </div>
+            <button
+              onClick={() => setMessage({ type: '', text: '' })}
+              className="flex-shrink-0 hover:opacity-80 transition"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        )}
+
+        {/* Confirmation Modal */}
+        {confirmModal.show && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-up">
+              <div className={`px-6 py-4 ${
+                confirmModal.type === 'delete' ? 'bg-rose-50' : 'bg-emerald-50'
+              } border-b ${
+                confirmModal.type === 'delete' ? 'border-rose-200' : 'border-emerald-200'
+              }`}>
+                <div className="flex items-center gap-3">
+                  {confirmModal.type === 'delete' ? (
+                    <AlertCircle className="text-rose-600" size={24} />
+                  ) : (
+                    <Check className="text-emerald-600" size={24} />
+                  )}
+                  <h2 className={`text-lg font-bold ${
+                    confirmModal.type === 'delete' ? 'text-rose-900' : 'text-emerald-900'
+                  }`}>
+                    {confirmModal.type === 'delete' ? 'Hapus Data' : 'Simpan Data'}
+                  </h2>
+                </div>
+              </div>
+
+              <div className="px-6 py-6">
+                <p className="text-slate-700 mb-2">
+                  {confirmModal.type === 'delete' 
+                    ? 'Apakah Anda yakin ingin menghapus dusun ' 
+                    : 'Apakah Anda yakin ingin menyimpan perubahan untuk '
+                  }
+                  <span className="font-semibold text-slate-900">{confirmModal.name}</span>?
+                </p>
+                {confirmModal.type === 'delete' && (
+                  <p className="text-sm text-rose-600 mt-3">Tindakan ini tidak dapat dibatalkan</p>
+                )}
+              </div>
+
+              <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex gap-3 justify-end">
+                <button
+                  onClick={() => setConfirmModal({ show: false, type: '', id: null, name: '' })}
+                  className="px-6 py-2 rounded-lg font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 transition"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirmModal.type === 'delete') {
+                      handleConfirmDelete();
+                    } else {
+                      handleConfirmSubmit();
+                    }
+                  }}
+                  className={`px-6 py-2 rounded-lg font-semibold text-white transition ${
+                    confirmModal.type === 'delete'
+                      ? 'bg-rose-600 hover:bg-rose-700'
+                      : 'bg-emerald-600 hover:bg-emerald-700'
+                  }`}
+                >
+                  {confirmModal.type === 'delete' ? 'Ya, Hapus' : 'Ya, Simpan'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
             <style>{`
               @keyframes fade-in {
                 from { opacity: 0; }
@@ -214,12 +375,12 @@ export default function AdminDusun() {
                     </div>
                     <div className="text-slate-500 text-sm mb-1">Jumlah Penduduk: <span className="text-emerald-700 font-medium">{item.population}</span></div>
                     <div className="text-slate-600 text-sm mb-1">{item.description}</div>
-                    <div className="text-xs text-slate-500">Komoditas: <span className="text-emerald-700 font-medium">{item.commodities.join(', ')}</span></div>
+                    <div className="text-xs text-slate-500">Komoditas: <span className="text-emerald-700 font-medium">{(Array.isArray(item.commodities) ? item.commodities : JSON.parse(item.commodities || '[]')).join(', ')}</span></div>
                   </div>
                 </div>
                 <div className="flex gap-2 mt-3 md:mt-0">
                   <button className="flex items-center gap-1 text-blue-600 hover:underline font-semibold" onClick={() => handleEdit(item)}><Edit className="w-4 h-4" /> Edit</button>
-                  <button className="flex items-center gap-1 text-red-500 hover:underline font-semibold" onClick={() => handleDelete(item.id)}><Trash2 className="w-4 h-4" /> Hapus</button>
+                  <button className="flex items-center gap-1 text-red-500 hover:underline font-semibold" onClick={() => handleDeleteClick(item.id, item.name)}><Trash2 className="w-4 h-4" /> Hapus</button>
                 </div>
               </li>
             ))}
@@ -228,6 +389,28 @@ export default function AdminDusun() {
         </div>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {message.text && (
+        <div className={`fixed top-6 right-6 px-6 py-4 rounded-xl shadow-lg flex items-center gap-3 z-50 animate-slide-in ${
+          message.type === 'success'
+            ? 'bg-emerald-500 text-white'
+            : 'bg-rose-500 text-white'
+        }`}>
+          {message.type === 'success' ? (
+            <Check className="w-5 h-5 flex-shrink-0" />
+          ) : (
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          )}
+          <span className="font-semibold">{message.text}</span>
+          <button
+            onClick={() => setMessage({ type: '', text: '' })}
+            className="ml-2 hover:opacity-75 transition"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      )}
     </>
   );
 }

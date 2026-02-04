@@ -1,11 +1,5 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
 
 export default function AdminArtikel() {
   const [artikel, setArtikel] = useState([]);
@@ -17,25 +11,50 @@ export default function AdminArtikel() {
   }, []);
 
   async function fetchArtikel() {
-    const { data, error } = await supabase.from('artikel').select('*').order('created_at', { ascending: false });
-    if (!error) setArtikel(data);
+    try {
+      const res = await fetch('/api/artikel');
+      const data = await res.json();
+      if (data.artikel) setArtikel(data.artikel);
+    } catch (err) {
+      // handle error
+    }
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (editId) {
-      await supabase.from('artikel').update(form).eq('id', editId);
-    } else {
-      await supabase.from('artikel').insert([form]);
+    try {
+      if (editId) {
+        await fetch('/api/artikel', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editId, ...form })
+        });
+      } else {
+        await fetch('/api/artikel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form)
+        });
+      }
+      setForm({ judul: '', isi: '', gambar: '', video: '' });
+      setEditId(null);
+      fetchArtikel();
+    } catch (err) {
+      // handle error
     }
-    setForm({ judul: '', isi: '', gambar: '', video: '' });
-    setEditId(null);
-    fetchArtikel();
   }
 
   async function handleDelete(id) {
-    await supabase.from('artikel').delete().eq('id', id);
-    fetchArtikel();
+    try {
+      await fetch('/api/artikel', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      fetchArtikel();
+    } catch (err) {
+      // handle error
+    }
   }
 
   function handleEdit(item) {

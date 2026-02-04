@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
-import { MapPin, Users, TreePine, ArrowRight, Menu, X, Phone, Mail, Facebook, Instagram, ChevronRight, Search, User } from 'lucide-react';
+import { MapPin, Users, TreePine, ArrowRight, Menu, X, Phone, Mail, Facebook, Instagram, ChevronRight, ChevronDown, Search, User } from 'lucide-react';
+import SidebarInfo from './SidebarInfo';
 
 // Carousel untuk kartu dusun (auto-slide)
 function DusunCardCarousel({ images, alt }) {
@@ -80,7 +81,7 @@ function DusunDetailModal({ dusun, onClose }) {
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
               <h5 className="text-slate-400 text-xs uppercase font-bold mb-1">Komoditas Utama</h5>
               <div className="flex gap-2 mt-1">
-                {dusun.commodities.map((item, idx) => (
+                {(Array.isArray(dusun.commodities) ? dusun.commodities : JSON.parse(dusun.commodities || '[]')).map((item, idx) => (
                   <span key={idx} className="bg-emerald-100 text-emerald-700 text-xs px-2 py-1 rounded-md font-medium">
                     {item}
                   </span>
@@ -104,11 +105,36 @@ function DusunDetailModal({ dusun, onClose }) {
   );
 }
 
-const DesaBandarUI = ({ dusunData, filteredDusun, artikelData = [], scrolled, isMenuOpen, setIsMenuOpen, selectedDusun, setSelectedDusun, searchTerm, setSearchTerm }) => {
+const DesaBandarUI = ({ dusunData, filteredDusun, artikelData = [], adminData = [], scrolled, isMenuOpen, setIsMenuOpen, selectedDusun, setSelectedDusun, searchTerm, setSearchTerm }) => {
+  const [openDropdown, setOpenDropdown] = React.useState(null);
+  
   function getDusunName(dusun_id) {
     const dusun = dusunData.find(d => d.id === dusun_id);
     return dusun ? dusun.name : '';
   }
+  
+  function getAuthorNames(authors) {
+    if (!authors) return [];
+    let authorsArray = [];
+    if (Array.isArray(authors)) {
+      authorsArray = authors;
+    } else if (typeof authors === 'string') {
+      try {
+        authorsArray = JSON.parse(authors);
+      } catch {
+        authorsArray = authors ? [authors] : [];
+      }
+    }
+    return authorsArray
+      .map(id => adminData.find(a => a.id === id)?.name || null)
+      .filter(Boolean);
+  }
+  
+  const stripHtml = (value) => {
+    if (!value) return '';
+    const text = String(value).replace(/<[^>]*>/g, '');
+    return text.replace(/\s+/g, ' ').trim();
+  };
 
 
   return (
@@ -130,10 +156,29 @@ const DesaBandarUI = ({ dusunData, filteredDusun, artikelData = [], scrolled, is
           {/* Desktop Menu */}
           <div className="hidden md:flex gap-8 text-white text-sm font-medium">
             <a href="#beranda" className="hover:text-emerald-300 transition">Beranda</a>
-            <a href="#tentang" className="hover:text-emerald-300 transition">Profil Desa</a>
+            <div className="relative group">
+              <button className="hover:text-emerald-300 transition flex items-center gap-1">
+                Profil Desa
+                <span className="text-xs"><ChevronDown size={16} /></span>
+              </button>
+              <div className="absolute left-0 mt-0 w-56 bg-emerald-800 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-40 py-2">
+                <a href="#tentang" className="block px-4 py-3 text-white hover:bg-emerald-700 transition text-sm">Visi & Misi</a>
+                <a href="/struktur-organisasi" className="block px-4 py-3 text-white hover:bg-emerald-700 transition text-sm">Struktur Organisasi</a>
+              </div>
+            </div>
+            <a href="/berita" className="hover:text-emerald-300 transition">Berita</a>
+            <div className="relative group">
+              <button className="hover:text-emerald-300 transition flex items-center gap-1">
+                Layanan
+                <span className="text-xs"><ChevronDown size={16} /></span>
+              </button>
+              <div className="absolute left-0 mt-0 w-56 bg-emerald-800 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-40 py-2">
+                <a href="/layanan-surat" className="block px-4 py-3 text-white hover:bg-emerald-700 transition text-sm">Layanan Surat</a>
+                <a href="/pengaduan-masyarakat" className="block px-4 py-3 text-white hover:bg-emerald-700 transition text-sm">Pengaduan Masyarakat</a>
+              </div>
+            </div>
             <a href="#dusun" className="hover:text-emerald-300 transition">Data Dusun</a>
             <a href="#kontak" className="hover:text-emerald-300 transition">Kontak</a>
-            <a href="/admin/login" className="hover:text-yellow-400 transition font-bold flex items-center"><User className="w-5 h-5" /></a>
           </div>
 
           {/* Mobile Menu Button */}
@@ -145,11 +190,40 @@ const DesaBandarUI = ({ dusunData, filteredDusun, artikelData = [], scrolled, is
         {/* Mobile Dropdown */}
         {isMenuOpen && (
           <div className="absolute top-full left-0 w-full bg-emerald-900 border-t border-emerald-800 p-6 md:hidden shadow-xl flex flex-col gap-4 text-white">
-            <a href="#beranda" onClick={() => setIsMenuOpen(false)}>Beranda</a>
-            <a href="#tentang" onClick={() => setIsMenuOpen(false)}>Profil Desa</a>
-            <a href="#dusun" onClick={() => setIsMenuOpen(false)}>Data Dusun</a>
-            <a href="#kontak" onClick={() => setIsMenuOpen(false)}>Kontak</a>
-            <a href="/admin/login" onClick={() => setIsMenuOpen(false)} className="font-bold text-yellow-400 flex items-center"><User className="w-5 h-5" /></a>
+            <a href="#beranda" onClick={() => setIsMenuOpen(false)} className="hover:text-emerald-300 transition">Beranda</a>
+            <div>
+              <button 
+                onClick={() => setOpenDropdown(openDropdown === 'profil' ? null : 'profil')}
+                className="flex items-center justify-between w-full hover:text-emerald-300 transition py-1 text-left"
+              >
+                <span>Profil Desa</span>
+                <span className={`text-xs transition-transform ${openDropdown === 'profil' ? 'rotate-180' : ''}`}><ChevronDown size={16} /></span>
+              </button>
+              {openDropdown === 'profil' && (
+                <div className="pl-4 flex flex-col gap-2 mt-2 border-l-2 border-emerald-600">
+                  <a href="#tentang" onClick={() => { setIsMenuOpen(false); setOpenDropdown(null); }} className="hover:text-emerald-300 transition py-1 text-sm">Visi & Misi</a>
+                  <a href="/struktur-organisasi" onClick={() => { setIsMenuOpen(false); setOpenDropdown(null); }} className="hover:text-emerald-300 transition py-1 text-sm">Struktur Organisasi</a>
+                </div>
+              )}
+            </div>
+            <a href="/berita" onClick={() => setIsMenuOpen(false)} className="hover:text-emerald-300 transition">Berita</a>
+            <div>
+              <button 
+                onClick={() => setOpenDropdown(openDropdown === 'layanan' ? null : 'layanan')}
+                className="flex items-center justify-between w-full hover:text-emerald-300 transition py-1 text-left"
+              >
+                <span>Layanan</span>
+                <span className={`text-xs transition-transform ${openDropdown === 'layanan' ? 'rotate-180' : ''}`}><ChevronDown size={16} /></span>
+              </button>
+              {openDropdown === 'layanan' && (
+                <div className="pl-4 flex flex-col gap-2 mt-2 border-l-2 border-emerald-600">
+                  <a href="/layanan-surat" onClick={() => { setIsMenuOpen(false); setOpenDropdown(null); }} className="hover:text-emerald-300 transition py-1 text-sm">Layanan Surat</a>
+                  <a href="/pengaduan-masyarakat" onClick={() => { setIsMenuOpen(false); setOpenDropdown(null); }} className="hover:text-emerald-300 transition py-1 text-sm">Pengaduan Masyarakat</a>
+                </div>
+              )}
+            </div>
+            <a href="#dusun" onClick={() => setIsMenuOpen(false)} className="hover:text-emerald-300 transition">Data Dusun</a>
+            <a href="#kontak" onClick={() => setIsMenuOpen(false)} className="hover:text-emerald-300 transition">Kontak</a>
           </div>
         )}
       </nav>
@@ -283,45 +357,66 @@ const DesaBandarUI = ({ dusunData, filteredDusun, artikelData = [], scrolled, is
         </div>
       </section>
 
-      {/* --- ARTIKEL TERBARU --- */}
-      {artikelData && artikelData.length > 0 && (
-        <section id="artikel" className="py-20 container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-emerald-600 font-bold uppercase tracking-wide text-sm mb-2">Informasi & Berita</h2>
-            <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">Artikel Terbaru</h3>
-            <p className="text-slate-600 max-w-2xl mx-auto mb-8">
-              Kumpulan artikel, berita, dan informasi seputar Desa Bandar dan dusun-dusunnya.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {artikelData.map((artikel) => (
-              <Link
-                key={artikel.id}
-                href={`/artikel/${artikel.id}`}
-                className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden flex flex-col cursor-pointer hover:shadow-2xl transition-all duration-200 no-underline"
-                tabIndex={0}
-              >
-                {artikel.image && (
-                  <img src={artikel.image} alt={artikel.title} className="w-full h-48 object-cover" />
-                )}
-                <div className="p-6 flex flex-col flex-1">
-                  <h4 className="text-xl font-bold text-slate-800 mb-2 line-clamp-2">{artikel.title}</h4>
-                  <p className="text-slate-500 text-sm mb-4 line-clamp-3">{artikel.content}</p>
-                  <div className="mt-auto flex items-center justify-between text-xs text-slate-400">
-                    {artikel.created_at && (
-                      <span>{new Date(artikel.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                    )}
-                    {artikel.dusun_id && getDusunName(artikel.dusun_id) && (
-                      <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full ml-2">{getDusunName(artikel.dusun_id)}</span>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            ))}
+      {/* --- FEATURED BERITA + SIDEBAR --- */}
+      <section className="py-20 bg-slate-50">
+        <div className="container mx-auto px-6">
+          <div className="mb-12">
+            <h2 className="text-emerald-600 font-bold uppercase tracking-wide text-sm mb-2">Informasi Terkini</h2>
+            <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">Berita & Artikel Terbaru</h3>
           </div>
 
-        </section>
-      )}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            {/* Featured Articles */}
+            <div className="lg:col-span-2">
+              <div className="space-y-6">
+                {artikelData.slice(0, 3).map((artikel) => (
+                  <Link
+                    key={artikel.id}
+                    href={`/artikel/${artikel.slug}`}
+                    className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden flex flex-col md:flex-row hover:shadow-2xl transition-all duration-300 group"
+                  >
+                    {artikel.image && (
+                      <div className="relative h-48 md:h-auto md:w-48 flex-shrink-0 overflow-hidden">
+                        <img
+                          src={artikel.image}
+                          alt={artikel.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    )}
+                    <div className="p-6 flex flex-col flex-1">
+                      <h4 className="text-xl font-bold text-slate-800 mb-2 group-hover:text-emerald-600 transition line-clamp-2">
+                        {artikel.title}
+                      </h4>
+                      <p className="text-slate-600 text-sm mb-4 line-clamp-2 flex-1">
+                        {stripHtml(artikel.content)}
+                      </p>
+                      <div className="flex items-center justify-between text-xs text-slate-500">
+                        <span>{artikel.created_at && new Date(artikel.created_at).toLocaleDateString('id-ID')}</span>
+                        <span className="text-emerald-600 font-semibold group-hover:gap-2 transition-all flex items-center gap-1">
+                          Baca <ArrowRight className="w-4 h-4" />
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+              <div className="mt-8 text-center">
+                <Link href="/berita" className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl font-semibold transition">
+                  Lihat Semua Berita <ArrowRight className="w-5 h-5" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Sidebar */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-24">
+                <SidebarInfo />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* --- VISI MISI / TENTANG --- */}
       <section id="tentang" className="bg-emerald-900 py-20 text-white relative overflow-hidden">
@@ -344,9 +439,19 @@ const DesaBandarUI = ({ dusunData, filteredDusun, artikelData = [], scrolled, is
               </div>
             </div>
           </div>
-          <div className="lg:w-1/2 grid grid-cols-2 gap-4">
-             <img src="/img/DSCF9959.JPG" className="rounded-2xl shadow-lg transform translate-y-8" alt="Pertanian" />
-             <img src="/img/DSCF9955.JPG" className="rounded-2xl shadow-lg" alt="Kegiatan Desa" />
+          <div className="lg:w-1/2 grid grid-cols-1 gap-4">
+            <div className="rounded-2xl shadow-lg overflow-hidden">
+              <iframe 
+                width="100%" 
+                height="315" 
+                src="https://www.youtube.com/embed/CVOqj84VfGE" 
+                title="YouTube video player" 
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                allowFullScreen
+                className="w-full"
+              ></iframe>
+            </div>
           </div>
         </div>
       </section>
@@ -378,11 +483,11 @@ const DesaBandarUI = ({ dusunData, filteredDusun, artikelData = [], scrolled, is
                 </li>
                 <li className="flex items-center gap-3">
                   <Phone className="text-emerald-500 w-5 h-5 shrink-0" />
-                  <span>(0357) 1234567</span>
+                  <span>0852-3504-8661</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Mail className="text-emerald-500 w-5 h-5 shrink-0" />
-                  <span>admin@desabandar.pacitankab.go.id</span>
+                  <span>pelayanandesabandar@gmail.com</span>
                 </li>
               </ul>
             </div>
@@ -390,14 +495,13 @@ const DesaBandarUI = ({ dusunData, filteredDusun, artikelData = [], scrolled, is
               <h3 className="text-white font-bold mb-6">Akses Cepat</h3>
               <ul className="space-y-3 text-sm">
                 <li><Link href="/layanan-surat" className="hover:text-emerald-400 transition">Layanan Surat</Link></li>
-                <li><Link href="/transparansi-anggaran" className="hover:text-emerald-400 transition">Transparansi Anggaran</Link></li>
-                <li><Link href="/berita-desa" className="hover:text-emerald-400 transition">Berita Desa</Link></li>
+                <li><Link href="/berita" className="hover:text-emerald-400 transition">Berita Desa</Link></li>
                 <li><Link href="/pengaduan-masyarakat" className="hover:text-emerald-400 transition">Pengaduan Masyarakat</Link></li>
               </ul>
             </div>
           </div>
           <div className="pt-8 text-center text-sm text-slate-500">
-            &copy; {new Date().getFullYear()} Pemerintah Desa Bandar. All rights reserved.
+            &copy; {new Date().getFullYear()} Desa Bandar. Dikembangkan oleh KKN-PPM UGM Swarna Bandar 2025.
           </div>
         </div>
       </footer>

@@ -2,6 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { MapPin, Phone, Mail, Facebook, Instagram, Menu, X } from 'lucide-react';
+import SidebarInfo from '../../components/SidebarInfo';
 import '../globals.css';
 
 export default function ArtikelLayout({ children }) {
@@ -27,7 +28,18 @@ export default function ArtikelLayout({ children }) {
         </div>
       </nav>
       <div className="pt-20 min-h-screen bg-slate-50">
-        {children}
+        <div className="container mx-auto px-6 py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="lg:col-span-2">
+              {children}
+            </div>
+            <div className="lg:col-span-1">
+              <div className="sticky top-24">
+                <SidebarInfo />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       {/* --- FOOTER --- */}
       <footer className="bg-slate-900 text-slate-300 py-6 mt-16">
@@ -56,26 +68,25 @@ export default function ArtikelLayout({ children }) {
                 </li>
                 <li className="flex items-center gap-3">
                   <Phone className="text-emerald-500 w-5 h-5 shrink-0" />
-                  <span>(0357) 1234567</span>
+                  <span>0852-3504-8661</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Mail className="text-emerald-500 w-5 h-5 shrink-0" />
-                  <span>admin@desabandar.pacitankab.go.id</span>
+                  <span>pelayanandesabandar@gmail.com</span>
                 </li>
               </ul>
             </div>
             <div>
               <h3 className="text-white font-bold mb-6">Akses Cepat</h3>
               <ul className="space-y-3 text-sm">
-                <li><a href="#" className="hover:text-emerald-400 transition">Layanan Surat</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition">Transparansi Anggaran</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition">Berita Desa</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition">Pengaduan Masyarakat</a></li>
+                <li><a href="/layanan-surat" className="hover:text-emerald-400 transition">Layanan Surat</a></li>
+                <li><a href="/berita" className="hover:text-emerald-400 transition">Berita Desa</a></li>
+                <li><a href="/pengaduan-masyarakat" className="hover:text-emerald-400 transition">Pengaduan Masyarakat</a></li>
               </ul>
             </div>
           </div>
           <div className="pt-8 text-center text-sm text-slate-500">
-            &copy; {new Date().getFullYear()} Pemerintah Desa Bandar. All rights reserved.
+            &copy; {new Date().getFullYear()} Desa Bandar. Dikembangkan oleh KKN-PPM UGM Swarna Bandar 2025.
           </div>
         </div>
       </footer>

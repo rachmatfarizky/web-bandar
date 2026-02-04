@@ -1,17 +1,11 @@
+
 'use client';
-
 import { useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock } from 'lucide-react';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+import { User, Lock } from 'lucide-react';
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
@@ -19,11 +13,24 @@ export default function AdminLogin() {
   async function handleLogin(e) {
     e.preventDefault();
     setError('');
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      setError(error.message);
-    } else {
-      router.push('/admin');
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error);
+      } else {
+        // Simpan JWT token ke localStorage
+        if (data.token) {
+          localStorage.setItem('admin_session', data.token);
+        }
+        router.push('/admin');
+      }
+    } catch (err) {
+      setError('Gagal login');
     }
   }
 
@@ -39,13 +46,13 @@ export default function AdminLogin() {
         </div>
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="relative">
-            <Mail className="absolute left-4 top-3.5 text-slate-400 w-5 h-5" />
+            <User className="absolute left-4 top-3.5 text-slate-400 w-5 h-5" />
             <input
-              type="email"
+              type="text"
               className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition shadow-sm bg-slate-50"
-              placeholder="Email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
+              placeholder="Username"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
               required
               autoFocus
             />
