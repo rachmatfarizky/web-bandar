@@ -4,6 +4,47 @@ import pool from '../../../lib/mysql';
 import { MapPin, User } from 'lucide-react';
 import sanitizeHtml from 'sanitize-html';
 
+// Generate metadata untuk halaman artikel dinamis
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  
+  // Fetch artikel by ID or slug
+  let artikel = null;
+  
+  if (!isNaN(id)) {
+    const [artikelRows] = await pool.query('SELECT * FROM artikel WHERE id = ?', [parseInt(id)]);
+    artikel = artikelRows[0];
+  }
+  
+  if (!artikel) {
+    const [artikelRows] = await pool.query('SELECT * FROM artikel WHERE slug = ?', [id]);
+    artikel = artikelRows[0];
+  }
+  
+  if (!artikel) {
+    return {
+      title: 'Artikel Tidak Ditemukan - Desa Bandar',
+      description: 'Artikel yang Anda cari tidak ditemukan'
+    };
+  }
+
+  // Strip HTML dari konten untuk description
+  const plainContent = sanitizeHtml(artikel.content, { allowedTags: [] }).substring(0, 160);
+
+  return {
+    title: `${artikel.title} - Desa Bandar`,
+    description: plainContent || 'Artikel dari Desa Bandar',
+    keywords: [artikel.title, 'Desa Bandar', 'Artikel'],
+    openGraph: {
+      title: artikel.title,
+      description: plainContent,
+      type: 'article',
+      url: `https://desabandar.id/artikel/${artikel.slug || artikel.id}`,
+      images: artikel.image ? [{ url: artikel.image, alt: artikel.title }] : []
+    }
+  };
+}
+
 export default async function ArtikelDetailPage(props) {
   const { id } = await props.params;
   

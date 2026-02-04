@@ -5,6 +5,11 @@ import { MapPin, Phone, Mail, Facebook, Instagram, Menu, X } from 'lucide-react'
 import SidebarInfo from '../../components/SidebarInfo';
 import '../globals.css';
 
+export const metadata = {
+  title: 'Artikel - Desa Bandar',
+  description: 'Kumpulan artikel dan berita terbaru dari Desa Bandar'
+};
+
 export default function ArtikelLayout({ children }) {
   return (
     <>

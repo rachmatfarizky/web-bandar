@@ -6,6 +6,8 @@ import SidebarAdmin from '../../components/SidebarAdmin';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+// Metadata akan digenerate di layout atau gunakan generateMetadata jika diperlukan
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
