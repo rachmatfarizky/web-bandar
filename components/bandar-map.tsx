@@ -147,6 +147,8 @@ export default function DesaJerukMap({
     UMKM: true,
   })
 
+  const [showLegend, setShowLegend] = useState(true)
+
 
   const safePois = useMemo(() => {
     return (pois ?? [])
@@ -213,26 +215,48 @@ export default function DesaJerukMap({
       </MapContainer>
 
       <div className="absolute right-3 top-3 z-[999] w-64 rounded-xl border bg-background/95 p-4 shadow-lg backdrop-blur">
-        <div className="mb-3">
-          <div className="text-sm font-bold">Legenda</div>
-          <div className="text-xs text-muted-foreground">Tampilkan / sembunyikan layer</div>
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <div className="text-sm font-bold">Legenda</div>
+            <div className="text-xs text-muted-foreground">Tampilkan / sembunyikan layer</div>
+          </div>
+          <button
+            onClick={() => setShowLegend(!showLegend)}
+            className="rounded-md bg-slate-200 hover:bg-slate-300 p-2 transition"
+            title={showLegend ? "Sembunyikan legenda" : "Tampilkan legenda"}
+          >
+            <svg 
+              className="w-4 h-4 text-slate-700" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              {showLegend ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+              )}
+            </svg>
+          </button>
         </div>
 
-        <div className="space-y-2">
-          {categories.map((cat) => (
-            <label key={cat} className="flex items-center justify-between gap-3 text-sm">
-              <div className="flex items-center gap-2">
-                <span className={`h-3 w-3 rounded-full ${CATEGORY_META[cat].dotClass}`} />
-                <span>{CATEGORY_META[cat].label}</span>
-              </div>
-              <input
-                type="checkbox"
-                checked={enabledCategories[cat]}
-                onChange={(e) => setEnabledCategories((prev) => ({ ...prev, [cat]: e.target.checked }))}
-              />
-            </label>
-          ))}
-        </div>
+        {showLegend && (
+          <div className="space-y-2">
+            {categories.map((cat) => (
+              <label key={cat} className="flex items-center justify-between gap-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className={`h-3 w-3 rounded-full ${CATEGORY_META[cat].dotClass}`} />
+                  <span>{CATEGORY_META[cat].label}</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={enabledCategories[cat]}
+                  onChange={(e) => setEnabledCategories((prev) => ({ ...prev, [cat]: e.target.checked }))}
+                />
+              </label>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

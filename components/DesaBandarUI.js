@@ -165,7 +165,7 @@ const DesaBandarUI = ({ dusunData, filteredDusun, artikelData = [], adminData = 
           <p className="text-lg md:text-xl max-w-2xl mx-auto mb-10 text-slate-100 font-light">
             Menjelajahi potensi alam, budaya, dan kearifan lokal masyarakat Desa Bandar, Pacitan.
           </p>
-          <div className="flex flex-col md:flex-row gap-4 justify-center">
+          <div className="flex flex-col md:flex-row gap-4 justify-center mb-8 md:mb-0">
             <a href="#dusun" className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-full font-semibold transition shadow-lg flex items-center justify-center gap-2">
               Jelajahi Dusun <ArrowRight size={18} />
             </a>
