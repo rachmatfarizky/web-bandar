@@ -85,7 +85,7 @@ export default function LayananSuratPage() {
                 </div>
                 <p className="mb-6 text-emerald-50">Silakan hubungi kami melalui WhatsApp untuk mengajukan permohonan layanan surat atau pertanyaan lainnya.</p>
                 <a 
-                  href="https://wa.me/628523504866?text=Saya%20ingin%20mengajukan%20permohonan%20layanan%20surat%20dari%20Desa%20Bandar"
+                  href="https://wa.me/6285235048661?text=Saya%20ingin%20mengajukan%20permohonan%20layanan%20surat%20dari%20Desa%20Bandar"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-white text-emerald-700 hover:bg-emerald-50 px-6 py-3 rounded-lg font-semibold transition shadow-lg"

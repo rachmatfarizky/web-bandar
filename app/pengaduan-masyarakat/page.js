@@ -79,7 +79,7 @@ export default function PengaduanMasyarakatPage() {
                   Kirimkan pengaduan, saran, atau aspirasi Anda melalui WhatsApp. Tim desa siap mendengarkan dan merespon dengan cepat.
                 </p>
                 <a 
-                  href="https://wa.me/628523504866?text=Saya%20ingin%20menyampaikan%20pengaduan%2Fsaran%2Fasparasi%20kepada%20Desa%20Bandar"
+                  href="https://wa.me/6285235048661?text=Saya%20ingin%20menyampaikan%20pengaduan%2Fsaran%2Fasparasi%20kepada%20Desa%20Bandar"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-white text-emerald-700 hover:bg-emerald-50 px-6 py-3 rounded-lg font-semibold transition shadow-lg"
