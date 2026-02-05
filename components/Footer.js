@@ -1,0 +1,55 @@
+import Link from 'next/link';
+import { MapPin, Phone, Mail, Facebook, Instagram } from 'lucide-react';
+
+export default function Footer() {
+  return (
+    <footer id="kontak" className="bg-slate-900 text-slate-300 py-6">
+      <div className="container mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-slate-800 pb-12">
+          <div className="md:col-span-2">
+            <div className="flex items-center gap-2 mb-4">
+              <img src="/img/logo-kab-pacitan.png" alt="Logo Kabupaten Pacitan" className="w-8 h-8 rounded-full" />
+              <h2 className="text-2xl font-bold text-white">Desa Bandar</h2>
+            </div>
+            <p className="mb-6 max-w-sm">
+              Website resmi Pemerintah Desa Bandar, Kecamatan Bandar, Kabupaten Pacitan, Jawa Timur.
+            </p>
+            <div className="flex gap-4">
+              <a href="https://maps.app.goo.gl/MHuVPQaJXETDwRpR7" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition"><MapPin size={20} /></a>
+              <a href="tel:085235048661" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition"><Phone size={20} /></a>
+              <a href="mailto:pelayanandesabandar@gmail.com" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition"><Mail size={20} /></a>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-white font-bold mb-6">Kontak Kami</h3>
+            <ul className="space-y-4">
+              <li className="flex items-start gap-3">
+                <MapPin className="text-emerald-500 w-5 h-5 mt-1 shrink-0" />
+                <span>Jl. Raya Bandar No. 02, Desa Bandar, Kec. Bandar, Kab. Pacitan, 63583</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <Phone className="text-emerald-500 w-5 h-5 shrink-0" />
+                <span>0852-3504-8661</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <Mail className="text-emerald-500 w-5 h-5 shrink-0" />
+                <span>pelayanandesabandar@gmail.com</span>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-white font-bold mb-6">Akses Cepat</h3>
+            <ul className="space-y-3 text-sm">
+              <li><Link href="/layanan-surat" className="hover:text-emerald-400 transition">Layanan Surat</Link></li>
+              <li><Link href="/berita" className="hover:text-emerald-400 transition">Berita Desa</Link></li>
+              <li><Link href="/pengaduan-masyarakat" className="hover:text-emerald-400 transition">Pengaduan Masyarakat</Link></li>
+            </ul>
+          </div>
+        </div>
+        <div className="pt-8 text-center text-sm text-slate-500">
+          &copy; {new Date().getFullYear()} Desa Bandar. Dikembangkan oleh KKN-PPM UGM Swarna Bandar 2025.
+        </div>
+      </div>
+    </footer>
+  );
+}

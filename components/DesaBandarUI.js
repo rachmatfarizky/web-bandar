@@ -2,6 +2,8 @@ import React from 'react';
 import Link from 'next/link';
 import { MapPin, Users, TreePine, ArrowRight, Menu, X, Phone, Mail, Facebook, Instagram, ChevronRight, ChevronDown, Search, User } from 'lucide-react';
 import SidebarInfo from './SidebarInfo';
+import Header from './Header';
+import Footer from './Footer';
 
 // Carousel untuk kartu dusun (auto-slide)
 function DusunCardCarousel({ images, alt }) {
@@ -139,94 +141,8 @@ const DesaBandarUI = ({ dusunData, filteredDusun, artikelData = [], adminData = 
 
   return (
   <div className="font-sans text-slate-800 bg-slate-50 min-h-screen">
-      {/* --- NAVBAR --- */}
-      <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-emerald-900 shadow-lg py-3' : 'bg-transparent py-5'}`}>
-        <div className="container mx-auto px-6 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="bg-white p-1.5 rounded-full">
-               {/* Logo Placeholder - Ganti dengan Logo Kab Pacitan */}
-               <img src="/img/logo-kab-pacitan.png" alt="Logo Kabupaten Pacitan" className="w-8 h-8 rounded-full" />
-            </div>
-            <div className="text-white">
-              <h1 className="font-bold text-lg leading-tight">Desa Bandar</h1>
-              <p className="text-xs opacity-80 font-light">Kec. Bandar, Kab. Pacitan</p>
-            </div>
-          </div>
-
-          {/* Desktop Menu */}
-          <div className="hidden md:flex gap-8 text-white text-sm font-medium">
-            <a href="#beranda" className="hover:text-emerald-300 transition">Beranda</a>
-            <div className="relative group">
-              <button className="hover:text-emerald-300 transition flex items-center gap-1">
-                Profil Desa
-                <span className="text-xs"><ChevronDown size={16} /></span>
-              </button>
-              <div className="absolute left-0 mt-0 w-56 bg-emerald-800 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-40 py-2">
-                <a href="#tentang" className="block px-4 py-3 text-white hover:bg-emerald-700 transition text-sm">Visi & Misi</a>
-                <a href="/struktur-organisasi" className="block px-4 py-3 text-white hover:bg-emerald-700 transition text-sm">Struktur Organisasi</a>
-              </div>
-            </div>
-            <a href="/berita" className="hover:text-emerald-300 transition">Berita</a>
-            <div className="relative group">
-              <button className="hover:text-emerald-300 transition flex items-center gap-1">
-                Layanan
-                <span className="text-xs"><ChevronDown size={16} /></span>
-              </button>
-              <div className="absolute left-0 mt-0 w-56 bg-emerald-800 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-40 py-2">
-                <a href="/layanan-surat" className="block px-4 py-3 text-white hover:bg-emerald-700 transition text-sm">Layanan Surat</a>
-                <a href="/pengaduan-masyarakat" className="block px-4 py-3 text-white hover:bg-emerald-700 transition text-sm">Pengaduan Masyarakat</a>
-              </div>
-            </div>
-            <a href="#dusun" className="hover:text-emerald-300 transition">Data Dusun</a>
-            <a href="#kontak" className="hover:text-emerald-300 transition">Kontak</a>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden text-white">
-            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-          </button>
-        </div>
-
-        {/* Mobile Dropdown */}
-        {isMenuOpen && (
-          <div className="absolute top-full left-0 w-full bg-emerald-900 border-t border-emerald-800 p-6 md:hidden shadow-xl flex flex-col gap-4 text-white">
-            <a href="#beranda" onClick={() => setIsMenuOpen(false)} className="hover:text-emerald-300 transition">Beranda</a>
-            <div>
-              <button 
-                onClick={() => setOpenDropdown(openDropdown === 'profil' ? null : 'profil')}
-                className="flex items-center justify-between w-full hover:text-emerald-300 transition py-1 text-left"
-              >
-                <span>Profil Desa</span>
-                <span className={`text-xs transition-transform ${openDropdown === 'profil' ? 'rotate-180' : ''}`}><ChevronDown size={16} /></span>
-              </button>
-              {openDropdown === 'profil' && (
-                <div className="pl-4 flex flex-col gap-2 mt-2 border-l-2 border-emerald-600">
-                  <a href="#tentang" onClick={() => { setIsMenuOpen(false); setOpenDropdown(null); }} className="hover:text-emerald-300 transition py-1 text-sm">Visi & Misi</a>
-                  <a href="/struktur-organisasi" onClick={() => { setIsMenuOpen(false); setOpenDropdown(null); }} className="hover:text-emerald-300 transition py-1 text-sm">Struktur Organisasi</a>
-                </div>
-              )}
-            </div>
-            <a href="/berita" onClick={() => setIsMenuOpen(false)} className="hover:text-emerald-300 transition">Berita</a>
-            <div>
-              <button 
-                onClick={() => setOpenDropdown(openDropdown === 'layanan' ? null : 'layanan')}
-                className="flex items-center justify-between w-full hover:text-emerald-300 transition py-1 text-left"
-              >
-                <span>Layanan</span>
-                <span className={`text-xs transition-transform ${openDropdown === 'layanan' ? 'rotate-180' : ''}`}><ChevronDown size={16} /></span>
-              </button>
-              {openDropdown === 'layanan' && (
-                <div className="pl-4 flex flex-col gap-2 mt-2 border-l-2 border-emerald-600">
-                  <a href="/layanan-surat" onClick={() => { setIsMenuOpen(false); setOpenDropdown(null); }} className="hover:text-emerald-300 transition py-1 text-sm">Layanan Surat</a>
-                  <a href="/pengaduan-masyarakat" onClick={() => { setIsMenuOpen(false); setOpenDropdown(null); }} className="hover:text-emerald-300 transition py-1 text-sm">Pengaduan Masyarakat</a>
-                </div>
-              )}
-            </div>
-            <a href="#dusun" onClick={() => setIsMenuOpen(false)} className="hover:text-emerald-300 transition">Data Dusun</a>
-            <a href="#kontak" onClick={() => setIsMenuOpen(false)} className="hover:text-emerald-300 transition">Kontak</a>
-          </div>
-        )}
-      </nav>
+      {/* Header */}
+      <Header scrolled={scrolled} />
 
       {/* --- HERO SECTION --- */}
       <header id="beranda" className="relative h-[85vh] flex items-center justify-center text-center text-white">
@@ -456,55 +372,8 @@ const DesaBandarUI = ({ dusunData, filteredDusun, artikelData = [], adminData = 
         </div>
       </section>
 
-      {/* --- FOOTER --- */}
-      <footer id="kontak" className="bg-slate-900 text-slate-300 py-6">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-slate-800 pb-12">
-            <div className="md:col-span-2">
-              <div className="flex items-center gap-2 mb-4">
-                 <img src="/img/logo-kab-pacitan.png" alt="Logo Kabupaten Pacitan" className="w-8 h-8 rounded-full" />
-                 <h2 className="text-2xl font-bold text-white">Desa Bandar</h2>
-              </div>
-              <p className="mb-6 max-w-sm">
-                Website resmi Pemerintah Desa Bandar, Kecamatan Bandar, Kabupaten Pacitan, Jawa Timur.
-              </p>
-              <div className="flex gap-4">
-                <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition"><Facebook size={20} /></a>
-                <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition"><Instagram size={20} /></a>
-                <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition"><Mail size={20} /></a>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-white font-bold mb-6">Kontak Kami</h3>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-3">
-                  <MapPin className="text-emerald-500 w-5 h-5 mt-1 shrink-0" />
-                  <span>Jl. Raya Bandar No. 02, Desa Bandar, Kec. Bandar, Kab. Pacitan, 63583</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Phone className="text-emerald-500 w-5 h-5 shrink-0" />
-                  <span>0852-3504-8661</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Mail className="text-emerald-500 w-5 h-5 shrink-0" />
-                  <span>pelayanandesabandar@gmail.com</span>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-white font-bold mb-6">Akses Cepat</h3>
-              <ul className="space-y-3 text-sm">
-                <li><Link href="/layanan-surat" className="hover:text-emerald-400 transition">Layanan Surat</Link></li>
-                <li><Link href="/berita" className="hover:text-emerald-400 transition">Berita Desa</Link></li>
-                <li><Link href="/pengaduan-masyarakat" className="hover:text-emerald-400 transition">Pengaduan Masyarakat</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="pt-8 text-center text-sm text-slate-500">
-            &copy; {new Date().getFullYear()} Desa Bandar. Dikembangkan oleh KKN-PPM UGM Swarna Bandar 2025.
-          </div>
-        </div>
-      </footer>
+{/* Footer */}
+      <Footer />
 
       {/* --- MODAL DETAIL DUSUN --- */}
       {selectedDusun && (

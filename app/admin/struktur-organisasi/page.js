@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Plus, Edit2, Trash2, ChevronLeft, AlertCircle, Check, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import SidebarAdmin from '@/components/SidebarAdmin';
+import SidebarAdmin from '../../../components/SidebarAdmin';
 import Select from 'react-select';
 
 const iconOptions = [
@@ -24,6 +24,7 @@ export default function StrukturOrganisasiAdminPage() {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [uploading, setUploading] = useState(false);
   const [confirmModal, setConfirmModal] = useState({ show: false, type: '', id: null, name: '' });
+  const [user, setUser] = useState(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -36,7 +37,32 @@ export default function StrukturOrganisasiAdminPage() {
     display_order: 0
   });
 
+  async function handleLogout() {
+    await fetch('/api/admin/logout', { method: 'POST' });
+    localStorage.removeItem('admin_session');
+    router.push('/admin/login');
+  }
+
   useEffect(() => {
+    // Check authentication
+    const session = localStorage.getItem('admin_session');
+    if (!session) {
+      router.push('/admin/login');
+      return;
+    }
+    
+    // Fetch user info
+    fetch('/api/admins/me', { headers: { 'Authorization': `Bearer ${session}` } })
+      .then(res => res.json())
+      .then(data => { 
+        if (data && data.user) {
+          setUser(data.user);
+        } else {
+          router.push('/admin/login');
+        }
+      })
+      .catch(() => router.push('/admin/login'));
+    
     fetchData();
   }, []);
 
@@ -191,7 +217,7 @@ export default function StrukturOrganisasiAdminPage() {
   if (loading) {
     return (
       <>
-        <SidebarAdmin active="struktur-organisasi" />
+        <SidebarAdmin active="struktur-organisasi" onLogout={handleLogout} user={user} />
         <div className="min-h-screen bg-slate-50 p-6" style={{ marginLeft: '224px' }}>
           <div className="max-w-6xl mx-auto">
             <div className="animate-pulse space-y-4">
@@ -206,7 +232,7 @@ export default function StrukturOrganisasiAdminPage() {
 
   return (
     <>
-      <SidebarAdmin active="struktur-organisasi" />
+      <SidebarAdmin active="struktur-organisasi" onLogout={handleLogout} user={user} />
       <div className="min-h-screen bg-slate-50 p-6" style={{ marginLeft: '224px' }}>
         <div className="max-w-6xl mx-auto">
         {/* Header */}
@@ -324,6 +350,7 @@ export default function StrukturOrganisasiAdminPage() {
                     Ikon
                   </label>
                   <Select
+                    instanceId="icon-select"
                     options={iconOptions.map(icon => ({ value: icon, label: icon }))}
                     value={{ value: formData.icon, label: formData.icon }}
                     onChange={(option) => setFormData({...formData, icon: option?.value || 'Shield'})}
@@ -356,6 +383,7 @@ export default function StrukturOrganisasiAdminPage() {
                     Warna
                   </label>
                   <Select
+                    instanceId="color-select"
                     options={colorOptions.map(color => ({ value: color, label: color }))}
                     value={{ value: formData.color, label: formData.color }}
                     onChange={(option) => setFormData({...formData, color: option?.value || 'emerald'})}
@@ -455,13 +483,13 @@ export default function StrukturOrganisasiAdminPage() {
             <table className="w-full">
               <thead className="bg-slate-100 border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">No</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Jabatan</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Nama</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Posisi</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Deskripsi</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Urutan</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Aksi</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">No</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">Jabatan</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">Nama</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">Posisi</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">Deskripsi</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">Urutan</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -483,17 +511,17 @@ export default function StrukturOrganisasiAdminPage() {
                       <td className="px-6 py-4 text-sm flex gap-2">
                         <button
                           onClick={() => handleEdit(item)}
-                          className="text-blue-600 hover:text-blue-700 p-2 hover:bg-blue-50 rounded transition"
+                          className="flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold py-2 px-3 rounded-lg transition"
                           title="Edit"
                         >
-                          <Edit2 size={18} />
+                          <Edit2 size={16} /> Edit
                         </button>
                         <button
                           onClick={() => handleDeleteClick(item.id, item.name)}
-                          className="text-rose-600 hover:text-rose-700 p-2 hover:bg-rose-50 rounded transition"
+                          className="flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2 px-3 rounded-lg transition"
                           title="Hapus"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={16} /> Hapus
                         </button>
                       </td>
                     </tr>

@@ -103,7 +103,7 @@ const ResizableImage = Image.extend({
 function ResizableImageNodeView(props) {
   const { editor, node, selected, updateAttributes, getPos } = props;
   const wrapperRef = useRef(null);
-  const startRef = useRef({ x: 0, width: 0, maxWidth: 0, dragging: false });
+  const startRef = useRef({ x: 0, width: 0, maxWidth: 0, dragging: false, dragMode: null });
 
   const beginResize = (e, direction) => {
     e.preventDefault();
@@ -121,7 +121,8 @@ function ResizableImageNodeView(props) {
       x: e.clientX,
       width: currentWidth,
       maxWidth,
-      dragging: true
+      dragging: true,
+      dragMode: 'resize'
     };
 
     const onMove = (ev) => {
@@ -141,65 +142,139 @@ function ResizableImageNodeView(props) {
     window.addEventListener('mouseup', onUp);
   };
 
+  const beginDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof getPos === 'function') {
+      editor.commands.setNodeSelection(getPos());
+    }
+
+    const wrapper = wrapperRef.current;
+    const parent = wrapper?.parentElement;
+    const rect = wrapper?.getBoundingClientRect();
+    const parentRect = parent?.getBoundingClientRect();
+
+    startRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      wrapperX: rect?.left || 0,
+      wrapperY: rect?.top || 0,
+      parentX: parentRect?.left || 0,
+      parentY: parentRect?.top || 0,
+      dragging: true,
+      dragMode: 'move'
+    };
+
+    const onMove = (ev) => {
+      if (!startRef.current.dragging || startRef.current.dragMode !== 'move') return;
+      
+      const dx = ev.clientX - startRef.current.x;
+      const dy = ev.clientY - startRef.current.y;
+      
+      const newX = startRef.current.wrapperX - startRef.current.parentX + dx;
+      const newY = startRef.current.wrapperY - startRef.current.parentY + dy;
+      
+      wrapper.style.position = 'relative';
+      wrapper.style.left = `${newX}px`;
+      wrapper.style.top = `${newY}px`;
+      wrapper.style.cursor = 'grabbing';
+    };
+
+    const onUp = () => {
+      startRef.current.dragging = false;
+      wrapper.style.cursor = 'grab';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
   return (
-    <NodeViewWrapper as="span" ref={wrapperRef} className="relative inline-block max-w-full">
-      <img
-        src={node.attrs.src}
-        alt={node.attrs.alt || ''}
-        title={node.attrs.title || ''}
-        style={{
-          display: 'block',
-          width: node.attrs.align === 'justify' ? '100%' : (node.attrs.width || '100%'),
-          height: 'auto',
-          maxWidth: '100%',
-          marginLeft: node.attrs.align === 'left' || node.attrs.align === 'justify' ? '0' : 'auto',
-          marginRight: node.attrs.align === 'right' || node.attrs.align === 'justify' ? '0' : 'auto'
-        }}
-        data-width={node.attrs.width || '100%'}
-        data-align={node.attrs.align || 'center'}
-        className="block rounded-lg"
-        onClick={() => {
-          if (typeof getPos === 'function') editor.commands.setNodeSelection(getPos());
-        }}
-        draggable={false}
-      />
+    <NodeViewWrapper as="div" ref={wrapperRef} className="relative w-full" draggable={false}>
+      <div style={{
+        display: 'flex',
+        justifyContent: node.attrs.align === 'left' ? 'flex-start' : 
+                       node.attrs.align === 'right' ? 'flex-end' : 
+                       node.attrs.align === 'justify' ? 'stretch' : 'center',
+        width: '100%',
+        marginBottom: '1rem'
+      }}>
+        <div style={{
+          position: 'relative',
+          display: 'inline-block',
+          maxWidth: node.attrs.align === 'justify' ? '100%' : 'auto',
+          width: node.attrs.align === 'justify' ? '100%' : 'auto'
+        }}>
+          <img
+            src={node.attrs.src}
+            alt={node.attrs.alt || ''}
+            title={node.attrs.title || ''}
+            style={{
+              display: 'block',
+              width: node.attrs.align === 'justify' ? '100%' : (node.attrs.width || '100%'),
+              height: 'auto',
+              maxWidth: '100%',
+              borderRadius: '0.5rem'
+            }}
+            data-width={node.attrs.width || '100%'}
+            data-align={node.attrs.align || 'center'}
+            className="block rounded-lg"
+            onClick={() => {
+              if (typeof getPos === 'function') editor.commands.setNodeSelection(getPos());
+            }}
+            draggable={false}
+          />
 
-      {selected && (
-        <>
-          <span className="pointer-events-none absolute inset-0 rounded-lg ring-2 ring-emerald-300" />
-          {/* helper grid */}
-          <span className="pointer-events-none absolute inset-0 rounded-lg" aria-hidden>
-            <span className="absolute left-1/2 top-0 -translate-x-1/2 h-full border-l border-dashed border-slate-200" />
-            <span className="absolute top-1/2 left-0 -translate-y-1/2 w-full border-t border-dashed border-slate-200" />
-          </span>
+          {selected && (
+            <>
+              <span className="pointer-events-none absolute inset-0 rounded-lg ring-2 ring-emerald-300" />
+              {/* helper grid */}
+              <span className="pointer-events-none absolute inset-0 rounded-lg" aria-hidden>
+                <span className="absolute left-1/2 top-0 -translate-x-1/2 h-full border-l border-dashed border-slate-200" />
+                <span className="absolute top-1/2 left-0 -translate-y-1/2 w-full border-t border-dashed border-slate-200" />
+              </span>
 
-          {/* handles */}
-          <button
-            type="button"
-            onMouseDown={(e) => beginResize(e, -1)}
-            className="absolute -top-2 -left-2 h-5 w-5 rounded border border-slate-300 bg-white shadow-sm cursor-nwse-resize"
-            title="Drag untuk resize"
-          />
-          <button
-            type="button"
-            onMouseDown={(e) => beginResize(e, 1)}
-            className="absolute -top-2 -right-2 h-5 w-5 rounded border border-slate-300 bg-white shadow-sm cursor-nesw-resize"
-            title="Drag untuk resize"
-          />
-          <button
-            type="button"
-            onMouseDown={(e) => beginResize(e, -1)}
-            className="absolute -bottom-2 -left-2 h-5 w-5 rounded border border-slate-300 bg-white shadow-sm cursor-nesw-resize"
-            title="Drag untuk resize"
-          />
-          <button
-            type="button"
-            onMouseDown={(e) => beginResize(e, 1)}
-            className="absolute -bottom-2 -right-2 h-5 w-5 rounded border border-slate-300 bg-white shadow-sm cursor-nwse-resize"
-            title="Drag untuk resize"
-          />
-        </>
-      )}
+              {/* move handle */}
+              <button
+                type="button"
+                onMouseDown={beginDrag}
+                className="absolute -top-8 left-1/2 -translate-x-1/2 px-3 py-1 rounded border border-slate-300 bg-emerald-500 text-white shadow-sm cursor-grab hover:bg-emerald-600 text-xs font-semibold"
+                title="Drag untuk memindahkan gambar"
+              >
+                ⇄ Pindahkan
+              </button>
+
+              {/* resize handles */}
+              <button
+                type="button"
+                onMouseDown={(e) => beginResize(e, -1)}
+                className="absolute -top-2 -left-2 h-5 w-5 rounded border border-slate-300 bg-white shadow-sm cursor-nwse-resize"
+                title="Drag untuk resize"
+              />
+              <button
+                type="button"
+                onMouseDown={(e) => beginResize(e, 1)}
+                className="absolute -top-2 -right-2 h-5 w-5 rounded border border-slate-300 bg-white shadow-sm cursor-nesw-resize"
+                title="Drag untuk resize"
+              />
+              <button
+                type="button"
+                onMouseDown={(e) => beginResize(e, -1)}
+                className="absolute -bottom-2 -left-2 h-5 w-5 rounded border border-slate-300 bg-white shadow-sm cursor-nesw-resize"
+                title="Drag untuk resize"
+              />
+              <button
+                type="button"
+                onMouseDown={(e) => beginResize(e, 1)}
+                className="absolute -bottom-2 -right-2 h-5 w-5 rounded border border-slate-300 bg-white shadow-sm cursor-nwse-resize"
+                title="Drag untuk resize"
+              />
+            </>
+          )}
+        </div>
+      </div>
     </NodeViewWrapper>
   );
 }
@@ -321,13 +396,14 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Mulai t
   };
 
   const isImageSelected = editor.isActive('image');
-  const imageAlign = isImageSelected ? (editor.getAttributes('image')?.align || 'center') : 'center';
+  const imageAttrs = isImageSelected ? editor.getAttributes('image') : {};
+  const imageAlign = imageAttrs?.align || 'center';
 
   const setImageAlign = (align) => {
-    if (!isImageSelected) return;
-    const patch = { align };
-    if (align === 'justify') patch.width = '100%';
-    editor.chain().focus().updateAttributes('image', patch).run();
+    if (!editor.isActive('image')) return;
+    const updateData = { align };
+    if (align === 'justify') updateData.width = '100%';
+    editor.chain().focus().updateAttributes('image', updateData).run();
   };
   const resizeImageBy = (deltaPercent) => {
     if (!isImageSelected) return;

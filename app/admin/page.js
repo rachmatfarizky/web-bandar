@@ -18,11 +18,23 @@ export default function AdminDashboard() {
   useEffect(() => {
     // Get session from localStorage
     const session = localStorage.getItem('admin_session');
-    if (!session) return;
+    if (!session) {
+      // Redirect to login jika tidak ada session
+      router.push('/admin/login');
+      return;
+    }
     // Fetch user info
     fetch('/api/admins/me', { headers: { 'Authorization': `Bearer ${session}` } })
       .then(res => res.json())
-      .then(data => { if (data && data.user) setUser(data.user); });
+      .then(data => { 
+        if (data && data.user) {
+          setUser(data.user);
+        } else {
+          // Session invalid, redirect to login
+          router.push('/admin/login');
+        }
+      })
+      .catch(() => router.push('/admin/login'));
     // Fetch artikel count
     fetch('/api/artikel?count=1')
       .then(res => res.json())

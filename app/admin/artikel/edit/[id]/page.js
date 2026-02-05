@@ -269,8 +269,7 @@ export default function EditArtikelPage() {
                 <div className="sticky top-6 space-y-6">
                   <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6">
                     <label className="block text-slate-700 font-semibold mb-2">Dusun Terkait (opsional)</label>
-                    <Select
-                      options={dusunList.map(d => ({ value: d.id, label: d.name }))}
+                    <Select                    instanceId="dusun-select-edit"                      options={dusunList.map(d => ({ value: d.id, label: d.name }))}
                       value={form.dusun_id ? { value: form.dusun_id, label: dusunList.find(d => d.id === form.dusun_id)?.name } : null}
                       onChange={option => setForm(f => ({ ...f, dusun_id: option ? option.value : '' }))}
                       isClearable

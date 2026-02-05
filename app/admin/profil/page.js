@@ -28,10 +28,10 @@ export default function AdminProfilePage() {
 
   const validatePassword = (pw) => {
     const errors = [];
-    if (pw.length < 8) errors.push('minimal 8 karakter');
-    if (!/[A-Z]/.test(pw)) errors.push('minimal 1 huruf besar');
-    if (!/[a-z]/.test(pw)) errors.push('minimal 1 huruf kecil');
-    if (!/[0-9]/.test(pw)) errors.push('minimal 1 angka');
+    if (pw.length < 8) errors.push('Minimal 8 karakter');
+    if (!/[A-Z]/.test(pw)) errors.push('Minimal 1 huruf besar');
+    if (!/[a-z]/.test(pw)) errors.push('Minimal 1 huruf kecil');
+    if (!/[0-9]/.test(pw)) errors.push('Minimal 1 angka');
     return errors;
   };
 
@@ -283,7 +283,7 @@ export default function AdminProfilePage() {
                   {newPassword.length > 0 && (
                     <div className="mt-3 space-y-2">
                       <div className="text-sm font-semibold mb-2">Syarat password:</div>
-                      {['minimal 8 karakter', 'minimal 1 huruf besar', 'minimal 1 huruf kecil', 'minimal 1 angka'].map((req, idx) => {
+                      {['Minimal 8 karakter', 'Minimal 1 huruf besar', 'Minimal 1 huruf kecil', 'Minimal 1 angka'].map((req, idx) => {
                         const isValid = !pwErrors.includes(req);
                         return (
                           <div key={idx} className={`text-sm flex items-center gap-2 ${isValid ? 'text-green-600' : 'text-red-600'}`}>

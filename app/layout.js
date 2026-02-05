@@ -1,4 +1,5 @@
 import './globals.css';
+import PageTransition from '../components/PageTransition';
 
 export const viewport = 'width=device-width, initial-scale=1';
 
@@ -32,7 +33,9 @@ export default function RootLayout({ children }) {
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="theme-color" content="#10b981" />
       </head>
-      <body>{children}</body>
+      <body>
+        <PageTransition>{children}</PageTransition>
+      </body>
     </html>
   );
 }

@@ -6,12 +6,14 @@ export function middleware(request) {
   // Protected routes yang memerlukan authentication
   const protectedRoutes = ['/admin'];
   
-  // Check if route is protected
-  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route) && pathname !== '/admin/login');
+  // Check if route is protected (but allow /admin/login)
+  const isProtectedRoute = protectedRoutes.some(route => 
+    pathname.startsWith(route) && pathname !== '/admin/login'
+  );
 
   if (isProtectedRoute) {
-    // Baca cookie atau header untuk session
-    const session = request.cookies.get('admin_session')?.value || request.headers.get('Authorization')?.replace('Bearer ', '');
+    // Baca cookie untuk session
+    const session = request.cookies.get('admin_session')?.value;
 
     if (!session) {
       // Redirect ke login jika tidak ada session

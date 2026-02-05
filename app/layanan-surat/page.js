@@ -1,9 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FileText, Check, Clock, MessageCircle, Phone, Mail, MapPin, ChevronRight } from 'lucide-react';
-import SidebarInfo from '@/components/SidebarInfo';
+import { FileText, Check, Clock, MessageCircle, Phone, Mail, MapPin, ChevronRight, Menu, X } from 'lucide-react';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import SidebarInfo from '../../components/SidebarInfo';
 
 const services = [
   {
@@ -45,45 +47,33 @@ const services = [
 ];
 
 export default function LayananSuratPage() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white">
-      {/* Navbar */}
-      <nav className="fixed w-full z-50 bg-emerald-900 shadow-lg py-3">
-        <div className="container mx-auto px-6 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="bg-white p-1.5 rounded-full">
-              <img src="/img/logo-kab-pacitan.png" alt="Logo" className="w-8 h-8 rounded-full" />
-            </div>
-            <div className="text-white">
-              <h1 className="font-bold text-lg leading-tight">Desa Bandar</h1>
-              <p className="text-xs opacity-80 font-light">Kec. Bandar, Kab. Pacitan</p>
-            </div>
-          </div>
-          <Link href="/" className="text-white hover:text-emerald-300 transition font-medium">
-            Kembali ke Beranda
-          </Link>
+    <div className="min-h-screen bg-slate-50">
+      <Header scrolled={scrolled} />
+
+      {/* Hero Section */}
+      <header className="relative h-72 flex items-center justify-center text-center text-white bg-gradient-to-r from-emerald-700 to-emerald-900 pt-20">
+        <div className="container px-6">
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-4">Layanan Surat Menyurat</h1>
+          <p className="text-lg md:text-xl text-emerald-100 max-w-2xl mx-auto">
+            Kami menyediakan berbagai layanan surat untuk memenuhi kebutuhan administrasi masyarakat Desa Bandar
+          </p>
         </div>
-      </nav>
+      </header>
 
       {/* Content */}
-      <div className="pt-32 pb-20">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content */}
-            <div className="lg:col-span-2">
-              {/* Header */}
-              <div className="mb-12">
-                <div className="flex items-center gap-2 mb-4 text-emerald-600">
-                  <ChevronRight size={20} />
-                  <span className="text-sm font-semibold uppercase tracking-wide">Layanan Publik</span>
-                </div>
-                <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-                  Layanan Surat Menyurat
-                </h1>
-                <p className="text-lg text-slate-600">
-                  Kantor Desa Bandar menyediakan berbagai layanan surat menyurat untuk memenuhi kebutuhan administrasi masyarakat. Hubungi kami melalui WhatsApp untuk informasi lebih lanjut atau mengajukan permohonan.
-                </p>
-              </div>
+      <div className="container mx-auto px-6 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
 
               {/* WhatsApp Contact Card */}
               <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-2xl p-8 text-white mb-12 shadow-lg">
@@ -159,39 +149,11 @@ export default function LayananSuratPage() {
             {/* Sidebar */}
             <div className="lg:col-span-1">
               <SidebarInfo />
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-slate-900 text-white py-12 mt-20">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            <div>
-              <h3 className="font-bold text-lg mb-4">Desa Bandar</h3>
-              <p className="text-slate-400">Kecamatan Bandar, Kabupaten Pacitan, Provinsi Jawa Timur</p>
-            </div>
-            <div>
-              <h3 className="font-bold mb-4">Tautan Cepat</h3>
-              <ul className="space-y-2 text-slate-400 text-sm">
-                <li><Link href="/" className="hover:text-white transition">Beranda</Link></li>
-                <li><Link href="/berita" className="hover:text-white transition">Berita</Link></li>
-                <li><Link href="/layanan-surat" className="hover:text-white transition">Layanan Surat</Link></li>
-                <li><Link href="/pengaduan-masyarakat" className="hover:text-white transition">Pengaduan Masyarakat</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-bold mb-4">Hubungi Kami</h3>
-              <p className="text-slate-400 text-sm">WhatsApp: 0852-3504-8661</p>
-              <p className="text-slate-400 text-sm">Email: layanandesabandar@gmail.com</p>
-            </div>
-          </div>
-          <div className="border-t border-slate-700 pt-8 text-center text-slate-400 text-sm">
-            <p>&copy; {new Date().getFullYear()} Desa Bandar. Dikembangkan oleh KKN-PPM UGM Swarna Bandar 2025.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

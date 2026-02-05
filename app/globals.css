@@ -33,6 +33,50 @@
     }
   }
 
+  @keyframes slide-down {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes page-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes admin-page-in {
+    from {
+      opacity: 0;
+      transform: translateY(15px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes stagger-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   .animate-slide-in {
     animation: slide-in 0.3s ease-out;
   }
@@ -43,5 +87,35 @@
 
   .animate-fade-in {
     animation: fade-in 0.3s ease-out;
+  }
+
+  .animate-slide-down {
+    animation: slide-down 0.3s ease-out;
+  }
+
+  .animate-page-in {
+    animation: page-in 0.4s ease-out;
+  }
+
+  .animate-admin-page-in {
+    animation: admin-page-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-stagger-fade-in {
+    animation: stagger-fade-in 0.4s ease-out backwards;
+  }
+
+  .animate-stagger-fade-in-0 { animation-delay: 0ms; }
+  .animate-stagger-fade-in-1 { animation-delay: 50ms; }
+  .animate-stagger-fade-in-2 { animation-delay: 100ms; }
+  .animate-stagger-fade-in-3 { animation-delay: 150ms; }
+  .animate-stagger-fade-in-4 { animation-delay: 200ms; }
+  .animate-stagger-fade-in-5 { animation-delay: 250ms; }
+
+  /* Page transition effect */
+  @supports (animation-timeline: view()) {
+    .page-transition {
+      animation: page-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
   }
 }

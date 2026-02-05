@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, X, MapPin, Calendar, User, Menu, ChevronRight, ArrowRight } from 'lucide-react';
+import { Search, X, MapPin, Calendar, User, ChevronRight, ArrowRight } from 'lucide-react';
 import SidebarInfo from '../../components/SidebarInfo';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
 
 export default function BeritaPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -96,45 +98,8 @@ export default function BeritaPage() {
 
   return (
     <div className="font-sans text-slate-800 bg-slate-50 min-h-screen">
-      {/* --- NAVBAR --- */}
-      <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-emerald-900 shadow-lg py-3' : 'bg-transparent py-5'}`}>
-        <div className="container mx-auto px-6 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="bg-white p-1.5 rounded-full">
-              <img src="/img/logo-kab-pacitan.png" alt="Logo" className="w-8 h-8 rounded-full" />
-            </div>
-            <div className="text-white">
-              <h1 className="font-bold text-lg leading-tight">Desa Bandar</h1>
-              <p className="text-xs opacity-80 font-light">Kec. Bandar, Kab. Pacitan</p>
-            </div>
-          </div>
-
-          {/* Desktop Menu */}
-          <div className="hidden md:flex gap-8 text-white text-sm font-medium">
-            <a href="/#beranda" className="hover:text-emerald-300 transition">Beranda</a>
-            <a href="/#tentang" className="hover:text-emerald-300 transition">Profil Desa</a>
-            <a href="/berita" className="text-emerald-300">Berita</a>
-            <a href="/#dusun" className="hover:text-emerald-300 transition">Data Dusun</a>
-            <a href="/#kontak" className="hover:text-emerald-300 transition">Kontak</a>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden text-white">
-            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-          </button>
-        </div>
-
-        {/* Mobile Dropdown */}
-        {isMenuOpen && (
-          <div className="absolute top-full left-0 w-full bg-emerald-900 border-t border-emerald-800 p-6 md:hidden shadow-xl flex flex-col gap-4 text-white">
-            <a href="/#beranda" onClick={() => setIsMenuOpen(false)}>Beranda</a>
-            <a href="/#tentang" onClick={() => setIsMenuOpen(false)}>Profil Desa</a>
-            <a href="/berita" onClick={() => setIsMenuOpen(false)} className="text-emerald-300 font-bold">Berita</a>
-            <a href="/#dusun" onClick={() => setIsMenuOpen(false)}>Data Dusun</a>
-            <a href="/#kontak" onClick={() => setIsMenuOpen(false)}>Kontak</a>
-          </div>
-        )}
-      </nav>
+      {/* Header */}
+      <Header scrolled={scrolled} />
 
       {/* --- HERO SECTION --- */}
       <header className="relative h-72 flex items-center justify-center text-center text-white bg-gradient-to-r from-emerald-700 to-emerald-900 pt-20">
@@ -266,32 +231,8 @@ export default function BeritaPage() {
         </div>
       </div>
 
-      {/* --- FOOTER --- */}
-      <footer className="bg-slate-900 text-white py-12 mt-20">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            <div>
-              <h3 className="font-bold text-lg mb-4">Desa Bandar</h3>
-              <p className="text-slate-400 text-sm">Kecamatan Bandar, Kabupaten Pacitan, Jawa Timur</p>
-            </div>
-            <div>
-              <h3 className="font-bold text-lg mb-4">Menu</h3>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li><a href="/#beranda" className="hover:text-emerald-400">Beranda</a></li>
-                <li><a href="/berita" className="hover:text-emerald-400">Berita</a></li>
-                <li><a href="/#dusun" className="hover:text-emerald-400">Data Dusun</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-bold text-lg mb-4">Hubungi Kami</h3>
-              <p className="text-slate-400 text-sm">Email: info@desabandar.id</p>
-            </div>
-          </div>
-          <div className="border-t border-slate-700 pt-6 text-center text-slate-400 text-sm">
-            <p>&copy; {new Date().getFullYear()} Desa Bandar. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

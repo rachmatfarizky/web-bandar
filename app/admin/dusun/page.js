@@ -27,13 +27,25 @@ export default function AdminDusun() {
   }
 
   useEffect(() => {
-    // Get session and fetch user info
+    // Get session and fetch user info - redirect if not authenticated
     const session = localStorage.getItem('admin_session');
-    if (session) {
-      fetch('/api/admins/me', { headers: { 'Authorization': `Bearer ${session}` } })
-        .then(res => res.json())
-        .then(data => { if (data && data.user) setUser(data.user); });
+    if (!session) {
+      router.push('/admin/login');
+      return;
     }
+    
+    fetch('/api/admins/me', { headers: { 'Authorization': `Bearer ${session}` } })
+      .then(res => res.json())
+      .then(data => { 
+        if (data && data.user) {
+          setUser(data.user);
+        } else {
+          // Invalid session
+          router.push('/admin/login');
+        }
+      })
+      .catch(() => router.push('/admin/login'));
+    
     fetchDusun();
   }, []);
 
@@ -363,29 +375,60 @@ export default function AdminDusun() {
         )}
         <div className="bg-white rounded-2xl shadow-lg p-8 border border-slate-100">
           <h2 className="text-xl font-bold mb-6 text-emerald-700">Daftar Dusun</h2>
-          <ul className="divide-y divide-slate-100">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {dusun.map(item => (
-              <li key={item.id} className="py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex items-start gap-5 flex-1">
-                  {item.images && item.images.length > 0 && <img src={item.images[0]} alt="Gambar Dusun" className="w-24 h-24 object-cover rounded-xl border border-slate-200 shadow" />}
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold text-lg text-slate-800">{item.name}</span>
-                      <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full ml-2">Kepala: {item.head}</span>
+              <div key={item.id} className="bg-gradient-to-br from-slate-50 to-white rounded-2xl border border-slate-200 shadow-md hover:shadow-lg transition-all overflow-hidden hover:border-emerald-300">
+                {/* Image Section */}
+                {item.images && item.images.length > 0 && (
+                  <img src={item.images[0]} alt="Gambar Dusun" className="w-full h-40 object-cover" />
+                )}
+                
+                {/* Content Section */}
+                <div className="p-6">
+                  <div className="mb-3">
+                    <h3 className="font-bold text-lg text-slate-800 mb-2">{item.name}</h3>
+                    <span className="inline-block text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-semibold">Kepala: {item.head}</span>
+                  </div>
+                  
+                  <div className="space-y-2 mb-4 text-sm">
+                    <div>
+                      <span className="text-slate-500">Jumlah Penduduk:</span>
+                      <span className="ml-2 text-emerald-700 font-semibold">{item.population}</span>
                     </div>
-                    <div className="text-slate-500 text-sm mb-1">Jumlah Penduduk: <span className="text-emerald-700 font-medium">{item.population}</span></div>
-                    <div className="text-slate-600 text-sm mb-1">{item.description}</div>
-                    <div className="text-xs text-slate-500">Komoditas: <span className="text-emerald-700 font-medium">{(Array.isArray(item.commodities) ? item.commodities : JSON.parse(item.commodities || '[]')).join(', ')}</span></div>
+                    <div>
+                      <span className="text-slate-600 line-clamp-2">{item.description}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 text-xs">Komoditas:</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {(Array.isArray(item.commodities) ? item.commodities : JSON.parse(item.commodities || '[]')).map((commodity, idx) => (
+                          <span key={idx} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                            {commodity}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 pt-4 border-t border-slate-200">
+                    <button onClick={() => handleEdit(item)} className="flex-1 flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold py-2 rounded-lg transition">
+                      <Edit className="w-4 h-4" /> Edit
+                    </button>
+                    <button onClick={() => handleDeleteClick(item.id, item.name)} className="flex-1 flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2 rounded-lg transition">
+                      <Trash2 className="w-4 h-4" /> Hapus
+                    </button>
                   </div>
                 </div>
-                <div className="flex gap-2 mt-3 md:mt-0">
-                  <button className="flex items-center gap-1 text-blue-600 hover:underline font-semibold" onClick={() => handleEdit(item)}><Edit className="w-4 h-4" /> Edit</button>
-                  <button className="flex items-center gap-1 text-red-500 hover:underline font-semibold" onClick={() => handleDeleteClick(item.id, item.name)}><Trash2 className="w-4 h-4" /> Hapus</button>
-                </div>
-              </li>
+              </div>
             ))}
-            {dusun.length === 0 && <li className="text-slate-400 text-center py-8">Belum ada data dusun.</li>}
-          </ul>
+          </div>
+          
+          {dusun.length === 0 && (
+            <div className="text-slate-400 text-center py-12">
+              <p className="text-lg">Belum ada data dusun.</p>
+            </div>
+          )}
         </div>
         </div>
       </div>

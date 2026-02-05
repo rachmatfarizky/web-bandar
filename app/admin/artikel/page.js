@@ -58,13 +58,25 @@ export default function AdminArtikel() {
   }
 
   useEffect(() => {
-    // Get session and fetch user info
+    // Get session and fetch user info - redirect if not authenticated
     const session = localStorage.getItem('admin_session');
-    if (session) {
-      fetch('/api/admins/me', { headers: { 'Authorization': `Bearer ${session}` } })
-        .then(res => res.json())
-        .then(data => { if (data && data.user) setUser(data.user); });
+    if (!session) {
+      router.push('/admin/login');
+      return;
     }
+    
+    fetch('/api/admins/me', { headers: { 'Authorization': `Bearer ${session}` } })
+      .then(res => res.json())
+      .then(data => { 
+        if (data && data.user) {
+          setUser(data.user);
+        } else {
+          // Invalid session
+          router.push('/admin/login');
+        }
+      })
+      .catch(() => router.push('/admin/login'));
+    
     fetchArtikel();
     fetchDusun();
     fetchAdmin();
@@ -213,6 +225,7 @@ export default function AdminArtikel() {
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Filter Dusun</label>
                   <Select
+                    instanceId="filter-dusun"
                     options={[{ value: '', label: 'Semua Dusun' }, ...dusunList.map(d => ({ value: d.id, label: d.name }))]}
                     value={filterDusun ? { value: filterDusun, label: dusunList.find(d => d.id === filterDusun)?.name } : { value: '', label: 'Semua Dusun' }}
                     onChange={(option) => setFilterDusun(option?.value || '')}
@@ -241,6 +254,7 @@ export default function AdminArtikel() {
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Filter Penulis</label>
                   <Select
+                    instanceId="filter-penulis"
                     options={[{ value: '', label: 'Semua Penulis' }, ...adminList.map(a => ({ value: a.id, label: a.name }))]}
                     value={filterAuthor ? { value: filterAuthor, label: adminList.find(a => a.id === filterAuthor)?.name } : { value: '', label: 'Semua Penulis' }}
                     onChange={(option) => setFilterAuthor(option?.value || '')}

@@ -3,6 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import { MapPin, Phone, Mail, Facebook, Instagram, Menu, X } from 'lucide-react';
 import SidebarInfo from '../../components/SidebarInfo';
+import PageTransition from '../../components/PageTransition';
 import '../globals.css';
 
 export const metadata = {
@@ -36,7 +37,7 @@ export default function ArtikelLayout({ children }) {
         <div className="container mx-auto px-6 py-12">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             <div className="lg:col-span-2">
-              {children}
+              <PageTransition>{children}</PageTransition>
             </div>
             <div className="lg:col-span-1">
               <div className="sticky top-24">
